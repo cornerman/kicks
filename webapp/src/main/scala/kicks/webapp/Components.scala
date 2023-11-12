@@ -4,7 +4,7 @@ import colibri.Subject
 import kicks.api
 import outwatch._
 import outwatch.dsl._
-import funstack.web.tapir
+import funstack.client.web.Fun
 
 object Components {
   import kicks.api.HttpApi
@@ -16,7 +16,7 @@ object Components {
       b("My books: "),
       span(
         cls := "tapir-result",
-        tapir.Fun.http
+        Fun.httpApi
           .client(HttpApi.booksListing)((HttpApi.BooksFromYear("drama", 2011), 10))
           .map(_.toString),
       ),
