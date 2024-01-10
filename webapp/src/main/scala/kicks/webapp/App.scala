@@ -1,5 +1,8 @@
 package kicks.webapp
 
+import colibri.Observable
+import colibri.reactive.Rx
+import kicks.webapp.state.{AppCommand, AppState, SubState}
 import outwatch._
 import outwatch.dsl._
 import funstack.client.web.Fun
@@ -10,14 +13,29 @@ object App {
   // - https://tailwindcss.com/ - basic styles like p-5, space-x-2, mb-auto, ...
   // - https://daisyui.com/ - based on tailwindcss with components like btn, navbar, footer, ...
 
-  val layout = div(
-    cls := "flex flex-col h-screen",
-    pageHeader,
-    pageBody,
-    pageFooter,
+  def mySub: VModM[SubState] = VMod(
+    VMod.access[SubState](s => s.toString),
   )
 
-  def pageHeader =
+  def layout: VNodeM[AppState] =
+    div(
+      mySub.provideSomeF[Observable, AppState](_.subcomponent.observable),
+      cls := "flex flex-col h-screen",
+      pageHeader,
+      pageBody,
+      pageFooter,
+      VMod.access[AppState](state => state.todos),
+      button(
+        "Add a Todo",
+        onClick.as(AppCommand.AddTodo("Do something")).dispatch,
+      ),
+      button(
+        "Delete all Todos",
+        onClick.as(AppCommand.DeleteAllTodos).dispatch,
+      ),
+    )
+
+  def pageHeader: VNodeM[AppState] =
     header(
       div(
         pageLink("Home", Page.Home),
@@ -31,14 +49,15 @@ object App {
       cls := "navbar shadow-lg",
     )
 
-  def authControls =
-    Fun.auth.currentUser.map {
+  def authControls: VModM[AppState] = VMod.access[AppState] { state =>
+    state.auth.user match {
       case Some(user) =>
         a(s"Logout (${user.info.email})", href := Fun.auth.logoutUrl, cls := "btn btn-primary", cls := "logout-button")
       case None => a("Login", href := Fun.auth.loginUrl, cls := "btn btn-primary", cls := "login-button")
     }
+  }
 
-  def pageLink(name: String, page: Page): VNode = {
+  def pageLink(name: String, page: Page) = {
     val styling = Page.current.map {
       case `page` => cls := "btn-neutral"
       case _      => cls := "btn-ghost"
@@ -76,5 +95,4 @@ object App {
         a(cls := "link link-hover", href := "#", "Contact"),
       ),
     )
-
 }

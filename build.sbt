@@ -6,9 +6,9 @@ ThisBuild / scalaVersion := "2.13.12"
 Global / excludeLintKeys += webpackDevServerPort // TODO:
 
 val versions = new {
-  val outwatch = "1.0.0-RC18"
-  val colibri  = "0.8.0"
-  val funStack = "0.9.16"
+  val outwatch = "1.0.0+4-ea3b233c-SNAPSHOT"
+  val colibri  = "0.8.2"
+  val funStack = "0.9.19"
   val tapir    = "1.9.0"
   val pprint   = "0.8.1"
 }
@@ -70,9 +70,9 @@ lazy val webapp = project
   .settings(
     Test / test := {}, // skip tests, since we don't have any in this subproject. Remove this line, once there are tests
     libraryDependencies ++= Seq(
-      "io.github.outwatch"   %%% "outwatch"            % versions.outwatch,
+      "io.github.outwatch"   %%% "outwatch"             % versions.outwatch,
       "io.github.fun-stack"  %%% "fun-stack-client-web" % versions.funStack,
-      "com.github.cornerman" %%% "colibri-router"      % versions.colibri,
+      "com.github.cornerman" %%% "colibri-router"       % versions.colibri,
       "com.github.cornerman" %%% "colibri-reactive"     % versions.colibri,
     ),
     Compile / npmDependencies ++= readJsDependencies(baseDirectory.value, "dependencies") ++ Seq(
