@@ -24,12 +24,15 @@ val enableFatalWarnings =
   sys.env.get("ENABLE_FATAL_WARNINGS").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
 
 lazy val commonSettings = Seq(
-  addCompilerPlugin("org.typelevel" % "kind-projector" % "0.13.2" cross CrossVersion.full),
+  addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
+  addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
 
   // overwrite scalacOptions "-Xfatal-warnings" from https://github.com/DavidGregory084/sbt-tpolecat
   if (enableFatalWarnings) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
-  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs"),
+  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
+
+  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.4.0",
 )
 
 lazy val scalaJsSettings = Seq(
@@ -55,8 +58,9 @@ lazy val scalaJsSecureRandom = Seq(
 )
 
 def readJsDependencies(baseDirectory: File, field: String): Seq[(String, String)] = {
-  val packageJson = ujson.read(IO.read(new File(s"$baseDirectory/package.json")))
-  packageJson(field).obj.mapValues(_.str.toString).toSeq
+  // val packageJson = ujson.read(IO.read(new File(s"$baseDirectory/package.json")))
+  // packageJson(field).obj.mapValues(_.str.toString).toSeq
+  Seq.empty
 }
 
 lazy val webapp = project
@@ -140,6 +144,22 @@ lazy val lambda = project
     fastOptJS / webpackEmitSourceMaps := true,
     fastOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.dev.js"),
     fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
+  )
+
+import smithy4s.codegen.Smithy4sCodegenPlugin
+val http4sVersion = "0.23.24"
+lazy val httpServer = project
+  .enablePlugins(Smithy4sCodegenPlugin)
+  .settings(commonSettings)
+  .settings(
+    Compile / run / fork := true,
+    libraryDependencies ++= Seq(
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % smithy4sVersion.value,
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
+      // "org.http4s" %% "http4s-ember-client" % http4sVersion,
+      "org.http4s" %% "http4s-ember-server" % http4sVersion,
+      "org.http4s" %% "http4s-dsl"          % http4sVersion,
+    ),
   )
 
 addCommandAlias("prod", "; lambda/fullOptJS/webpack; webapp/fullOptJS/webpack")

@@ -6,8 +6,11 @@ addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta43+4-a
 addSbtPlugin("org.typelevel" % "sbt-tpolecat" % "0.5.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
 
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10")
+addSbtPlugin("com.disneystreaming.smithy4s" % "smithy4s-sbt-codegen" % "0.18.5")
+
 // for reading npmDependencies from package.json
-libraryDependencies ++= Seq("com.lihaoyi" %% "upickle" % "2.0.0")
+//libraryDependencies ++= Seq("com.lihaoyi" %% "upickle" % "2.0.0")
 
 resolvers ++= Seq(
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
