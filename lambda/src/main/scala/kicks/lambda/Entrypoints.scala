@@ -13,7 +13,7 @@ import scala.scalajs.js
 object Entrypoints {
   @js.annotation.JSExportTopLevel("httpApi")
   val httpApi = http.api.tapir.Handler.handleKleisli(
-    HttpApiImpl.endpoints,
+    HttpApiImpl.endpoints
   )
 
   @js.annotation.JSExportTopLevel("httpRpc")
@@ -32,6 +32,6 @@ object Entrypoints {
   val wsEventAuth = ws.eventauthorizer.Handler.handleKleisli(
     Router
       .contra[String, ws.eventauthorizer.Handler.IOKleisli]
-      .route[EventApi[ws.eventauthorizer.Handler.IOKleisli]](EventApiAuthImpl),
+      .route[EventApi[ws.eventauthorizer.Handler.IOKleisli]](EventApiAuthImpl)
   )
 }

@@ -49,12 +49,12 @@ lazy val scalaJsBundlerSettings = Seq(
 
 lazy val scalaJsMacrotaskExecutor = Seq(
   // https://github.com/scala-js/scala-js-macrotask-executor
-  libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
+  libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1"
 )
 
 lazy val scalaJsSecureRandom = Seq(
   // https://www.scala-js.org/news/2022/04/04/announcing-scalajs-1.10.0
-  libraryDependencies += "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0",
+  libraryDependencies += "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0"
 )
 
 def readJsDependencies(baseDirectory: File, field: String): Seq[(String, String)] = {
@@ -137,7 +137,7 @@ lazy val lambda = project
     ),
     Compile / npmDependencies ++= readJsDependencies(baseDirectory.value, "dependencies"),
     stIgnore ++= List(
-      "aws-sdk",
+      "aws-sdk"
     ),
     Compile / npmDevDependencies     ++= readJsDependencies(baseDirectory.value, "devDependencies"),
     fullOptJS / webpackEmitSourceMaps := true,
@@ -154,24 +154,25 @@ lazy val httpServer = project
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.outr" %% "scribe-slf4j2" % scribeVersion,
-      "com.outr" %% "scribe" % scribeVersion,
+      "com.outr"                     %% "scribe-slf4j2"           % scribeVersion,
+      "com.outr"                     %% "scribe"                  % scribeVersion,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % smithy4sVersion.value,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
       // "org.http4s" %% "http4s-ember-client" % http4sVersion,
       "org.http4s" %% "http4s-ember-server" % http4sVersion,
       "org.http4s" %% "http4s-dsl"          % http4sVersion,
-    ),
-  ).dependsOn(db)
+    )
+  )
+  .dependsOn(db)
 
 lazy val dbCore = project
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-    ),
+    )
   )
 
-val quillVersion = "4.8.0"
+val quillVersion         = "4.8.0"
 val schemaCrawlerVersion = "16.21.1"
 lazy val codegen = project
   .settings(commonSettings)
@@ -184,17 +185,17 @@ lazy val codegen = project
       "org.freemarker" % "freemarker"               % "2.3.32",
       "org.xerial"     % "sqlite-jdbc"              % "3.44.1.0",
       "org.postgresql" % "postgresql"               % "42.7.1",
-      "io.getquill" %% "quill-codegen-jdbc" % quillVersion,
-    ),
+      "io.getquill"   %% "quill-codegen-jdbc"       % quillVersion,
+    )
   )
 
 lazy val db = project
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "io.getquill" %% "quill-core" % quillVersion,
+      "io.getquill" %% "quill-core"   % quillVersion,
       "io.getquill" %% "quill-doobie" % quillVersion,
-      "org.xerial"     % "sqlite-jdbc"              % "3.44.1.0",
+      "org.xerial"   % "sqlite-jdbc"  % "3.44.1.0",
     ),
     Compile / sourceGenerators += Def.taskDyn {
       val outDir = (Compile / sourceManaged).value / "scala" / "codegen"
@@ -202,7 +203,7 @@ lazy val db = project
         val _ = (codegen / Compile / run).toTask(s" ${outDir.getAbsolutePath}").value
         (outDir ** "*.scala").get
       }
-    }.taskValue
+    }.taskValue,
   )
 
 addCommandAlias("prod", "; lambda/fullOptJS/webpack; webapp/fullOptJS/webpack")

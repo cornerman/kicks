@@ -14,7 +14,7 @@ object App {
   // - https://daisyui.com/ - based on tailwindcss with components like btn, navbar, footer, ...
 
   def mySub: VModM[SubState] = VMod(
-    VMod.access[SubState](s => s.toString),
+    VMod.access[SubState](s => s.toString)
   )
 
   def layout: VNodeM[AppState] =

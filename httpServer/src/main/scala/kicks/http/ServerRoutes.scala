@@ -6,7 +6,7 @@ import cats.effect.IO
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{HttpRoutes, Request, Response, ServerSentEvent}
 import smithy4s.UnsupportedProtocolError
-import smithy4s.http4s.{SimpleRestJsonBuilder, swagger}
+import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
 import smithy4s.kicks.KicksServiceGen
 
 object ServerRoutes {

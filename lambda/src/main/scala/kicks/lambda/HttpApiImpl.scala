@@ -28,6 +28,6 @@ object HttpApiImpl {
   }
 
   val endpoints = List(
-    booksListingImpl,
+    booksListingImpl
   )
 }

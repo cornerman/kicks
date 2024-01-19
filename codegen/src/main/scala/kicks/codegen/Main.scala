@@ -6,7 +6,6 @@ import io.getquill.codegen.model.{CustomNames, NameParser, PackagingStrategy, Sn
 import org.postgresql.ds.PGSimpleDataSource
 import org.sqlite.SQLiteDataSource
 
-
 object Main {
   def main(args: Array[String]): Unit = {
     val outDir = args.headOption.fold(".")(_.stripSuffix("/"))

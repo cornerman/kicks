@@ -16,7 +16,7 @@ object Main extends IOApp.Simple {
       Fun.auth.currentUser.map { user =>
         val state = AppState(Auth(user))
         App.layout.provide(state)
-      },
+      }
     )
   }
 

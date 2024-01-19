@@ -5,7 +5,7 @@ import funstack.client.core.auth.User
 import outwatch.EventDispatcher
 
 case class Auth(
-  user: Option[User],
+  user: Option[User]
 )
 
 sealed trait AppCommand
@@ -17,7 +17,7 @@ object AppCommand {
 case class SubState()
 
 case class AppState(
-  auth: Auth,
+  auth: Auth
 //  subcomponent2: SubState,
 ) extends EventDispatcher.Callback[AppCommand] {
 
