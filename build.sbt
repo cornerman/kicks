@@ -1,4 +1,4 @@
-Global / onChangedBuildSource := IgnoreSourceChanges // not working well with webpack devserver
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.13.12"
@@ -32,7 +32,7 @@ lazy val commonSettings = Seq(
   scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
 
-  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.4.0",
+  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.5-99e8dbf-20240118T213220Z-SNAPSHOT",
 )
 
 lazy val scalaJsSettings = Seq(
@@ -147,19 +147,62 @@ lazy val lambda = project
   )
 
 import smithy4s.codegen.Smithy4sCodegenPlugin
+val scribeVersion = "3.13.0"
 val http4sVersion = "0.23.24"
 lazy val httpServer = project
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(commonSettings)
   .settings(
-    Compile / run / fork := true,
     libraryDependencies ++= Seq(
+      "com.outr" %% "scribe-slf4j2" % scribeVersion,
+      "com.outr" %% "scribe" % scribeVersion,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % smithy4sVersion.value,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
       // "org.http4s" %% "http4s-ember-client" % http4sVersion,
       "org.http4s" %% "http4s-ember-server" % http4sVersion,
       "org.http4s" %% "http4s-dsl"          % http4sVersion,
     ),
+  ).dependsOn(db)
+
+lazy val dbCore = project
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+    ),
+  )
+
+val quillVersion = "4.8.0"
+val schemaCrawlerVersion = "16.21.1"
+lazy val codegen = project
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect"            % scalaVersion.value,
+      "us.fatehi"      % "schemacrawler-tools"      % schemaCrawlerVersion,
+      "us.fatehi"      % "schemacrawler-sqlite"     % schemaCrawlerVersion,
+      "us.fatehi"      % "schemacrawler-postgresql" % schemaCrawlerVersion,
+      "org.freemarker" % "freemarker"               % "2.3.32",
+      "org.xerial"     % "sqlite-jdbc"              % "3.44.1.0",
+      "org.postgresql" % "postgresql"               % "42.7.1",
+      "io.getquill" %% "quill-codegen-jdbc" % quillVersion,
+    ),
+  )
+
+lazy val db = project
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "io.getquill" %% "quill-core" % quillVersion,
+      "io.getquill" %% "quill-doobie" % quillVersion,
+      "org.xerial"     % "sqlite-jdbc"              % "3.44.1.0",
+    ),
+    Compile / sourceGenerators += Def.taskDyn {
+      val outDir = (Compile / sourceManaged).value / "scala" / "codegen"
+      Def.task {
+        val _ = (codegen / Compile / run).toTask(s" ${outDir.getAbsolutePath}").value
+        (outDir ** "*.scala").get
+      }
+    }.taskValue
   )
 
 addCommandAlias("prod", "; lambda/fullOptJS/webpack; webapp/fullOptJS/webpack")

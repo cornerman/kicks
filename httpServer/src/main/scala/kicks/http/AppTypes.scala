@@ -4,7 +4,7 @@ import cats.effect.IO
 import fs2.Stream
 import smithy4s.Transformation
 
-object ServiceTypes {
+object AppTypes {
   type SingleResponseBi[+ErrorOutput, +Output] =
     IO[Either[ErrorOutput, Output]]
   type SingleResponse[_, +ErrorOutput, +Output, _, _] =
@@ -14,14 +14,14 @@ object ServiceTypes {
   type StreamResponse[_, ErrorOutput, _, _, StreamOutput] =
     StreamResponseBi[ErrorOutput, StreamOutput]
 
-  val singleTransform = new Transformation.AbsorbError[ServiceTypes.SingleResponseBi, IO] {
+  val singleTransform = new Transformation.AbsorbError[AppTypes.SingleResponseBi, IO] {
     override def apply[E, A](fa: SingleResponseBi[E, A], injectError: E => Throwable): IO[A] = fa.flatMap {
       case Right(value) => IO.pure(value)
       case Left(error)  => IO.raiseError(injectError(error))
     }
   }
 
-  val streamTransform = new Transformation.AbsorbError[ServiceTypes.StreamResponseBi, Stream[IO, *]] {
+  val streamTransform = new Transformation.AbsorbError[AppTypes.StreamResponseBi, Stream[IO, *]] {
     override def apply[E, A](fa: StreamResponseBi[E, A], injectError: E => Throwable): Stream[IO, A] = Stream
       .eval(fa.map {
         case Right(value) => value
