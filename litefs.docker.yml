@@ -1,0 +1,21 @@
+fuse:
+  dir: "/litefs"
+
+data:
+  dir: "/var/lib/litefs"
+
+lease:
+  type: "static"
+  advertise-url: $ADVERTISE_URL
+  candidate: $IS_PRIMARY
+
+# proxy:
+#   addr: ":8080"
+#   target: "localhost:8080"
+#   db: "db"
+#   passthrough: 
+#     - "*.ico"
+#     - "*.png"
+
+exec:
+  - cmd: "java -jar httpServer.jar /litefs/db"

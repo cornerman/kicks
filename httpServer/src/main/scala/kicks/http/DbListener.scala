@@ -5,7 +5,7 @@ import fs2.Stream
 
 import scala.concurrent.duration.DurationInt
 
-object KicksEventsImpl {
+class DbListener(state: AppState) {
   def subscribe(name: String): Stream[IO, AppEvent] = {
     Stream
       .emits(Seq(AppEvent.Hello("no")))

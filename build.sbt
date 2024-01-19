@@ -153,6 +153,13 @@ lazy val httpServer = project
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(commonSettings)
   .settings(
+    assembly / assemblyMergeStrategy := {
+      //https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
+      case PathList("META-INF", "services", _*) => MergeStrategy.filterDistinctLines
+      case PathList("META-INF", _*) => MergeStrategy.discard
+      case "module-info.class" => MergeStrategy.discard
+      case x => (assembly / assemblyMergeStrategy).value(x)
+    },
     libraryDependencies ++= Seq(
       "com.outr"                     %% "scribe-slf4j2"           % scribeVersion,
       "com.outr"                     %% "scribe"                  % scribeVersion,
@@ -172,7 +179,7 @@ lazy val dbCore = project
     )
   )
 
-val quillVersion         = "4.8.0"
+val quillVersion         = "4.8.1"
 val schemaCrawlerVersion = "16.21.1"
 lazy val codegen = project
   .settings(commonSettings)

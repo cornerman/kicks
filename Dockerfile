@@ -2,6 +2,8 @@
 
 FROM amazoncorretto:21-alpine
 
+ARG LITEFS_CONFIG=litefs.config
+
 LABEL fly_launch_runtime="Java"
 
 # Install packages needed to build node modules
@@ -14,6 +16,7 @@ COPY --from=flyio/litefs:0.5 /usr/local/bin/litefs /usr/local/bin/litefs
 WORKDIR /app
 
 COPY httpServer/target/scala-2.13/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
+COPY $LITEFS_CONFIG litefs.yml
 
 # Actual entrypoint/command inside litefs.yml
 ENTRYPOINT litefs mount
