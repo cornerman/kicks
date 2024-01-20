@@ -10,7 +10,7 @@ addSbtPlugin("com.eed3si9n"                 % "sbt-assembly"         % "0.14.10"
 addSbtPlugin("com.disneystreaming.smithy4s" % "smithy4s-sbt-codegen" % "0.18.5")
 addSbtPlugin("io.spray"                     % "sbt-revolver"         % "0.10.0")
 
-addSbtPlugin("com.github.cornerman"                     % "sbt-quillcodegen"         % "0.0.0+1-e8e36db1-SNAPSHOT")
+addSbtPlugin("com.github.cornerman"                     % "sbt-quillcodegen"         % "0.1.0")
 
 // for reading npmDependencies from package.json
 //libraryDependencies ++= Seq("com.lihaoyi" %% "upickle" % "2.0.0")

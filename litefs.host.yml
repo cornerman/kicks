@@ -1,5 +1,6 @@
 fuse:
-  dir: "/litefs"
+  dir: "/litefs-share/litefs"
+  allow-other: true
 
 data:
   dir: "/var/lib/litefs"
@@ -9,16 +10,7 @@ lease:
   advertise-url: $ADVERTISE_URL
   candidate: $IS_PRIMARY
 
-# proxy:
-#   addr: ":8080"
-#   target: "localhost:8080"
-#   db: "db"
-#   passthrough:
-#     - "*.ico"
-#     - "*.png"
-
 exec:
+  - cmd: "chmod -R 777 /litefs-share/litefs"
   - cmd: "flyway migrate -url=$DATABASE_URL -locations=filesystem:./migrations"
-    if-candidate: true
-
-  - cmd: "java -jar httpServer.jar"
+  - cmd: "tail -f /dev/null"

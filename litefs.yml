@@ -23,7 +23,7 @@ exit-on-error: false
 #   addr: ":8080"
 #   target: "localhost:8080"
 #   db: "db"
-#   passthrough: 
+#   passthrough:
 #     - "*.ico"
 #     - "*.png"
 

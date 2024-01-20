@@ -1,3 +1,5 @@
+import quillcodegen.SqlExecutor
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
@@ -146,11 +148,10 @@ lazy val lambda = project
     fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
   )
 
-import smithy4s.codegen.Smithy4sCodegenPlugin
 val scribeVersion = "3.13.0"
 val http4sVersion = "0.23.24"
 lazy val httpServer = project
-  .enablePlugins(Smithy4sCodegenPlugin)
+  .enablePlugins(smithy4s.codegen.Smithy4sCodegenPlugin)
   .settings(commonSettings)
   .settings(
     assembly / assemblyMergeStrategy := {
@@ -179,48 +180,22 @@ lazy val dbCore = project
     )
   )
 
-// Should be same as in Codegen.scala for generated code
-val quillVersion         = "4.8.1"
-val schemaCrawlerVersion = "16.21.1"
-lazy val codegen = project
-  .settings(commonSettings)
-  .settings(
-    crossScalaVersions := Seq("2.12.12", "2.13.12"),
-    scalaVersion := "2.12.12",
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect"            % scalaVersion.value,
-      "io.getquill"   %% "quill-codegen-jdbc"       % quillVersion,
-    )
-  )
-
-lazy val codegenPlugin = project
-  .settings(
-    scalaVersion := "2.12.12",
-    sbtPlugin := true,
-    libraryDependencies ++= Seq(
-      "org.xerial" % "sqlite-jdbc" % "3.44.1.0",
-      "org.postgresql" % "postgresql" % "42.7.1",
-      "mysql" % "mysql-connector-java" % "8.0.33",
-      "com.microsoft.sqlserver" % "mssql-jdbc" % "10.2.1.jre8",
-      "org.mariadb.jdbc" % "mariadb-java-client" % "3.1.2",
-      "com.h2database" % "h2" % "2.1.214",
-      "com.oracle.database.jdbc" % "ojdbc8" % "21.9.0.0"
-    )
-  ).dependsOn(codegen)
-
 lazy val db = project
+  .enablePlugins(quillcodegen.plugin.CodegenPlugin)
   .settings(commonSettings)
   .settings(
+    quillcodegenPackagePrefix := "kicks.db",
+    quillcodegenJdbcUrl := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
+
+    quillcodegenSetupTask := Def.taskDyn {
+      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+      executeSqlFile(file("./schema.sql"))
+    },
+
     libraryDependencies ++= Seq(
-      "io.getquill" %% "quill-core"   % quillVersion,
-    ),
-    Compile / sourceGenerators += Def.taskDyn {
-      val outDir = (Compile / sourceManaged).value / "scala" / "codegen"
-      Def.task {
-        val _ = (codegen / Compile / run).toTask(s" ${outDir.getAbsolutePath}").value
-        (outDir ** "*.scala").get
-      }
-    }.taskValue,
+      "io.getquill"   %% "quill-doobie"       % "4.8.1",
+      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
+    )
   )
 
 addCommandAlias("prod", "; lambda/fullOptJS/webpack; webapp/fullOptJS/webpack")

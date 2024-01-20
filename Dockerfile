@@ -3,6 +3,7 @@
 FROM amazoncorretto:21-alpine
 
 ARG LITEFS_CONFIG=litefs.config
+ARG REQUIRE_JAR=true
 
 ENV FLYWAY_VERSION 10.6.0
 ENV FLYWAY_HOME /flyway
@@ -22,7 +23,8 @@ RUN ln -s /flyway-${FLYWAY_VERSION}/flyway /usr/local/bin
 
 WORKDIR /app
 
-COPY httpServer/target/scala-2.13/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
+COPY httpServe[r]/target/scala-2.13/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
+RUN [ "$REQUIRE_JAR" = "false" ] || [ -f httpServer.jar ]
 COPY $LITEFS_CONFIG litefs.yml
 COPY migrations migrations
 
