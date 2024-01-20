@@ -32,6 +32,9 @@ exit-on-error: false
 # the last command to be long-running (e.g. an application server). When the
 # last command exits, LiteFS is shut down.
 exec:
+  - cmd: "flyway migrate -url=$DATABASE_URL -locations=filesystem:./migrations"
+    if-candidate: true
+
   - cmd: "java -jar httpServer.jar /litefs/db"
 
 # The lease section specifies how the cluster will be managed. We're using the

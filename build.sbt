@@ -29,10 +29,10 @@ lazy val commonSettings = Seq(
 
   // overwrite scalacOptions "-Xfatal-warnings" from https://github.com/DavidGregory084/sbt-tpolecat
   if (enableFatalWarnings) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
-  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
+//  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
 
-  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.5-99e8dbf-20240118T213220Z-SNAPSHOT",
+  //  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.5-99e8dbf-20240118T213220Z-SNAPSHOT",
 )
 
 lazy val scalaJsSettings = Seq(
@@ -179,30 +179,40 @@ lazy val dbCore = project
     )
   )
 
+// Should be same as in Codegen.scala for generated code
 val quillVersion         = "4.8.1"
 val schemaCrawlerVersion = "16.21.1"
 lazy val codegen = project
   .settings(commonSettings)
   .settings(
+    crossScalaVersions := Seq("2.12.12", "2.13.12"),
+    scalaVersion := "2.12.12",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect"            % scalaVersion.value,
-      "us.fatehi"      % "schemacrawler-tools"      % schemaCrawlerVersion,
-      "us.fatehi"      % "schemacrawler-sqlite"     % schemaCrawlerVersion,
-      "us.fatehi"      % "schemacrawler-postgresql" % schemaCrawlerVersion,
-      "org.freemarker" % "freemarker"               % "2.3.32",
-      "org.xerial"     % "sqlite-jdbc"              % "3.44.1.0",
-      "org.postgresql" % "postgresql"               % "42.7.1",
       "io.getquill"   %% "quill-codegen-jdbc"       % quillVersion,
     )
   )
+
+lazy val codegenPlugin = project
+  .settings(
+    scalaVersion := "2.12.12",
+    sbtPlugin := true,
+    libraryDependencies ++= Seq(
+      "org.xerial" % "sqlite-jdbc" % "3.44.1.0",
+      "org.postgresql" % "postgresql" % "42.7.1",
+      "mysql" % "mysql-connector-java" % "8.0.33",
+      "com.microsoft.sqlserver" % "mssql-jdbc" % "10.2.1.jre8",
+      "org.mariadb.jdbc" % "mariadb-java-client" % "3.1.2",
+      "com.h2database" % "h2" % "2.1.214",
+      "com.oracle.database.jdbc" % "ojdbc8" % "21.9.0.0"
+    )
+  ).dependsOn(codegen)
 
 lazy val db = project
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
       "io.getquill" %% "quill-core"   % quillVersion,
-      "io.getquill" %% "quill-doobie" % quillVersion,
-      "org.xerial"   % "sqlite-jdbc"  % "3.44.1.0",
     ),
     Compile / sourceGenerators += Def.taskDyn {
       val outDir = (Compile / sourceManaged).value / "scala" / "codegen"

@@ -13,9 +13,13 @@ lease:
 #   addr: ":8080"
 #   target: "localhost:8080"
 #   db: "db"
-#   passthrough: 
+#   passthrough:
 #     - "*.ico"
 #     - "*.png"
 
 exec:
-  - cmd: "java -jar httpServer.jar /litefs/db"
+  # - cmd: "sh -c 'sqlite3 $(echo $DATABASE_URL | sed s/^sqlite://) \"VACUUM;\" && ls /litefs && flyway migrate -url=$DATABASE_URL -locations=filesystem:./migrations'"
+  - cmd: "flyway migrate -url=$DATABASE_URL -locations=filesystem:./migrations"
+    if-candidate: true
+
+  - cmd: "java -jar httpServer.jar"

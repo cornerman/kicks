@@ -22,6 +22,7 @@ services:
       FLY_REGION: litefs-primary
       IS_PRIMARY: "true"
       ADVERTISE_URL: "http://litefs-primary:20202"
+      DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db"
 
   litefs-replica1:
     build:
@@ -38,6 +39,7 @@ services:
       FLY_REGION: litefs-replica1
       IS_PRIMARY: "false"
       ADVERTISE_URL: "http://litefs-primary:20202"
+      DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db"
 
 volumes:
   litefs-storage-primary:
