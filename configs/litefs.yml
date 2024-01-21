@@ -1,0 +1,29 @@
+fuse:
+  dir: "/litefs"
+
+data:
+  dir: "/var/lib/litefs"
+
+lease:
+  type: "consul"
+  advertise-url: "http://${HOSTNAME}.vm.${FLY_APP_NAME}.internal:20202"
+  candidate: ${FLY_REGION == PRIMARY_REGION}
+  promote: true
+
+  consul:
+    url: "${FLY_CONSUL_URL}"
+    key: "litefs/${FLY_APP_NAME}"
+
+# proxy:
+#   addr: ":8080"
+#   target: "localhost:8080"
+#   db: "db"
+#   passthrough:
+#     - "*.ico"
+#     - "*.png"
+
+exec:
+  - cmd: "java -jar httpServer.jar migrate-then-run"
+    if-candidate: true
+  - cmd: "java -jar httpServer.jar run"
+    if-candidate: false

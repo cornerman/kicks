@@ -1,5 +1,3 @@
-import quillcodegen.SqlExecutor
-
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
@@ -10,9 +8,10 @@ Global / excludeLintKeys += webpackDevServerPort // TODO:
 val versions = new {
   val outwatch = "1.0.0+4-ea3b233c-SNAPSHOT"
   val colibri  = "0.8.2"
-  val funStack = "0.9.19"
-  val tapir    = "1.9.0"
-  val pprint   = "0.8.1"
+  val scribe = "3.13.0"
+  val http4s = "0.23.24"
+  val smithy4s = "0.18.5"
+  val quill = "4.8.1"
 }
 
 // Uncomment, if you want to use snapshot dependencies from sonatype or jitpack
@@ -22,15 +21,14 @@ val versions = new {
 //   "Jitpack" at "https://jitpack.io",
 // )
 
-val enableFatalWarnings =
-  sys.env.get("ENABLE_FATAL_WARNINGS").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
+val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
 
 lazy val commonSettings = Seq(
   addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
   addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
 
   // overwrite scalacOptions "-Xfatal-warnings" from https://github.com/DavidGregory084/sbt-tpolecat
-  if (enableFatalWarnings) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
+  if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
 //  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
 
@@ -40,23 +38,17 @@ lazy val commonSettings = Seq(
 lazy val scalaJsSettings = Seq(
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
   libraryDependencies += "org.portable-scala" %%% "portable-scala-reflect" % "1.1.2",
-) ++ scalaJsBundlerSettings ++ scalaJsMacrotaskExecutor ++ scalaJsSecureRandom
 
-lazy val scalaJsBundlerSettings = Seq(
+  // https://github.com/scala-js/scala-js-macrotask-executor
+  libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
+  // https://www.scala-js.org/news/2022/04/04/announcing-scalajs-1.10.0
+  libraryDependencies += "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0",
+
+  // scalajs-bundler with webpack
   webpack / version               := "5.75.0",
   webpackCliVersion               := "5.0.0",
   startWebpackDevServer / version := "4.11.1",
   useYarn                         := true,
-)
-
-lazy val scalaJsMacrotaskExecutor = Seq(
-  // https://github.com/scala-js/scala-js-macrotask-executor
-  libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1"
-)
-
-lazy val scalaJsSecureRandom = Seq(
-  // https://www.scala-js.org/news/2022/04/04/announcing-scalajs-1.10.0
-  libraryDependencies += "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0"
 )
 
 def readJsDependencies(baseDirectory: File, field: String): Seq[(String, String)] = {
@@ -65,31 +57,81 @@ def readJsDependencies(baseDirectory: File, field: String): Seq[(String, String)
   Seq.empty
 }
 
-lazy val webapp = project
-  .enablePlugins(
-    ScalaJSPlugin,
-    ScalaJSBundlerPlugin,
-    ScalablyTypedConverterPlugin,
+// shared project which contains api definitions.
+// these definitions are used for type safe implementations
+// of client and server
+lazy val api = crossProject(JSPlatform, JVMPlatform)
+  .in(file("projects/api"))
+  .enablePlugins(smithy4s.codegen.Smithy4sCodegenPlugin)
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+    ),
   )
-  .dependsOn(api)
+
+lazy val db = project
+  .in(file("projects/db"))
+  .enablePlugins(quillcodegen.plugin.CodegenPlugin)
+  .settings(commonSettings)
+  .settings(
+    quillcodegenPackagePrefix := "kicks.db",
+    quillcodegenJdbcUrl := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
+
+    //quillcodegenSetupTask := Def.taskDyn {
+    //  IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+    //  executeSqlFile(file("./schema.sql"))
+    //},
+    quillcodegenSetupTask := {
+      val dbFile = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
+      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
+    },
+
+    libraryDependencies ++= Seq(
+      "io.getquill"   %% "quill-doobie"       % versions.quill,
+      "org.flywaydb" % "flyway-core" % "10.6.0",
+      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
+    )
+  )
+
+lazy val httpServer = project
+  .in(file("projects/httpServer"))
+  .dependsOn(api.jvm, db)
+  .settings(commonSettings)
+  .settings(
+    assembly / assemblyMergeStrategy := {
+      //https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
+      case PathList("META-INF", "services", _*) => MergeStrategy.filterDistinctLines
+      case PathList("META-INF", _*) => MergeStrategy.discard
+      case "module-info.class" => MergeStrategy.discard
+      case x => (assembly / assemblyMergeStrategy).value(x)
+    },
+    libraryDependencies ++= Seq(
+      "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
+      "com.outr"                     %% "scribe"                  % versions.scribe,
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % versions.smithy4s,
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
+      "org.http4s" %% "http4s-ember-server" % versions.http4s,
+      "org.http4s" %% "http4s-dsl"          % versions.http4s,
+    )
+  )
+
+lazy val webapp = project
+  .in(file("projects/webapp"))
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
+  .dependsOn(api.js)
   .settings(commonSettings, scalaJsSettings)
   .settings(
-    Test / test := {}, // skip tests, since we don't have any in this subproject. Remove this line, once there are tests
     libraryDependencies ++= Seq(
       "io.github.outwatch"   %%% "outwatch"             % versions.outwatch,
-      "io.github.fun-stack"  %%% "fun-stack-client-web" % versions.funStack,
       "com.github.cornerman" %%% "colibri-router"       % versions.colibri,
       "com.github.cornerman" %%% "colibri-reactive"     % versions.colibri,
     ),
     Compile / npmDependencies ++= readJsDependencies(baseDirectory.value, "dependencies") ++ Seq(
       "snabbdom"               -> "github:outwatch/snabbdom.git#semver:0.7.5", // for outwatch, workaround for: https://github.com/ScalablyTyped/Converter/issues/293
-      "reconnecting-websocket" -> "4.1.10",                                    // for fun-stack websockets, workaround for https://github.com/ScalablyTyped/Converter/issues/293 https://github.com/cornerman/mycelium/blob/6f40aa7018276a3281ce11f7047a6a3b9014bff6/build.sbt#74
-      "jwt-decode"             -> "3.1.2",                                     // for fun-stack auth, workaround for https://github.com/ScalablyTyped/Converter/issues/293 https://github.com/cornerman/mycelium/blob/6f40aa7018276a3281ce11f7047a6a3b9014bff6/build.sbt#74
     ),
     stIgnore ++= List(
-      "reconnecting-websocket",
       "snabbdom",
-      "jwt-decode",
     ),
     Compile / npmDevDependencies   ++= readJsDependencies(baseDirectory.value, "devDependencies"),
     scalaJSUseMainModuleInitializer := true,
@@ -103,99 +145,6 @@ lazy val webapp = project
     fastOptJS / webpackBundlingMode   := BundlingMode.LibraryOnly(),
     fastOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.dev.js"),
     fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
-  )
-
-// shared project which contains api definitions.
-// these definitions are used for type safe implementations
-// of client and server
-lazy val api = project
-  .enablePlugins(ScalaJSPlugin)
-  .settings(commonSettings)
-  .settings(
-    Test / test := {}, // skip tests, since we don't have any in this subproject. Remove this line, once there are tests
-    libraryDependencies ++= Seq(
-      "com.softwaremill.sttp.tapir" %%% "tapir-core"       % versions.tapir,
-      "com.softwaremill.sttp.tapir" %%% "tapir-json-circe" % versions.tapir,
-    ),
-  )
-
-lazy val lambda = project
-  .enablePlugins(
-    ScalaJSPlugin,
-    ScalaJSBundlerPlugin,
-    ScalablyTypedConverterPlugin,
-  )
-  .dependsOn(api)
-  .settings(commonSettings, scalaJsSettings, scalaJsBundlerSettings)
-  .settings(
-    Test / test := {}, // skip tests, since we don't have any in this subproject. Remove this line, once there are tests
-    libraryDependencies ++= Seq(
-      "io.github.fun-stack" %%% "fun-stack-lambda-ws-event-authorizer" % versions.funStack,
-      "io.github.fun-stack" %%% "fun-stack-lambda-ws-rpc"              % versions.funStack,
-      "io.github.fun-stack" %%% "fun-stack-lambda-http-rpc"            % versions.funStack,
-      "io.github.fun-stack" %%% "fun-stack-lambda-http-api-tapir"      % versions.funStack,
-      "io.github.fun-stack" %%% "fun-stack-backend"                    % versions.funStack,
-      "com.lihaoyi"         %%% "pprint"                               % versions.pprint,
-    ),
-    Compile / npmDependencies ++= readJsDependencies(baseDirectory.value, "dependencies"),
-    stIgnore ++= List(
-      "aws-sdk"
-    ),
-    Compile / npmDevDependencies     ++= readJsDependencies(baseDirectory.value, "devDependencies"),
-    fullOptJS / webpackEmitSourceMaps := true,
-    fastOptJS / webpackEmitSourceMaps := true,
-    fastOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.dev.js"),
-    fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
-  )
-
-val scribeVersion = "3.13.0"
-val http4sVersion = "0.23.24"
-lazy val httpServer = project
-  .enablePlugins(smithy4s.codegen.Smithy4sCodegenPlugin)
-  .settings(commonSettings)
-  .settings(
-    assembly / assemblyMergeStrategy := {
-      //https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
-      case PathList("META-INF", "services", _*) => MergeStrategy.filterDistinctLines
-      case PathList("META-INF", _*) => MergeStrategy.discard
-      case "module-info.class" => MergeStrategy.discard
-      case x => (assembly / assemblyMergeStrategy).value(x)
-    },
-    libraryDependencies ++= Seq(
-      "com.outr"                     %% "scribe-slf4j2"           % scribeVersion,
-      "com.outr"                     %% "scribe"                  % scribeVersion,
-      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % smithy4sVersion.value,
-      "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
-      // "org.http4s" %% "http4s-ember-client" % http4sVersion,
-      "org.http4s" %% "http4s-ember-server" % http4sVersion,
-      "org.http4s" %% "http4s-dsl"          % http4sVersion,
-    )
-  )
-  .dependsOn(db)
-
-lazy val dbCore = project
-  .settings(commonSettings)
-  .settings(
-    libraryDependencies ++= Seq(
-    )
-  )
-
-lazy val db = project
-  .enablePlugins(quillcodegen.plugin.CodegenPlugin)
-  .settings(commonSettings)
-  .settings(
-    quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
-
-    quillcodegenSetupTask := Def.taskDyn {
-      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-      executeSqlFile(file("./schema.sql"))
-    },
-
-    libraryDependencies ++= Seq(
-      "io.getquill"   %% "quill-doobie"       % "4.8.1",
-      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
-    )
   )
 
 addCommandAlias("prod", "; lambda/fullOptJS/webpack; webapp/fullOptJS/webpack")

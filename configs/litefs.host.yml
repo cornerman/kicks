@@ -1,0 +1,14 @@
+fuse:
+  dir: "/litefs-share/litefs"
+  allow-other: true
+
+data:
+  dir: "/var/lib/litefs"
+
+lease:
+  type: "static"
+  advertise-url: $ADVERTISE_URL
+  candidate: $IS_PRIMARY
+
+exec:
+  - cmd: "tail -f /dev/null"

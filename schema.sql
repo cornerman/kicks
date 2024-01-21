@@ -6,18 +6,19 @@
 
 CREATE TABLE foo(wolf text);
 
+-- Create Address table
+CREATE TABLE Address (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    street TEXT,
+    city TEXT NOT NULL
+);
+
 -- Create Person table
 CREATE TABLE Person (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name TEXT NOT NULL,
     age INTEGER,
     address_id INTEGER,
+    bar text,
     FOREIGN KEY (address_id) REFERENCES Address(id)
-);
-
--- Create Address table
-CREATE TABLE Address (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    street TEXT,
-    city TEXT NOT NULL
 );
