@@ -22,3 +22,4 @@ exec:
     if-candidate: true
   - cmd: "java -jar httpServer.jar run"
     if-candidate: false
+  - cmd: ln -s /litefs/kicks.db /app/ && litestream replicate

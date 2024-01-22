@@ -27,3 +27,4 @@ exec:
     if-candidate: true
   - cmd: "java -jar httpServer.jar run"
     if-candidate: false
+  - cmd: litestream

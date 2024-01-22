@@ -1,3 +1,6 @@
+
+import scala.collection.immutable.Seq
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
@@ -33,15 +36,16 @@ lazy val commonSettings = Seq(
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
 
   //  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.5-99e8dbf-20240118T213220Z-SNAPSHOT",
+  libraryDependencies ++= Seq(
+    "com.outr"                     %% "scribe"                  % versions.scribe,
+  )
 )
 
 lazy val scalaJsSettings = Seq(
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
-  libraryDependencies += "org.portable-scala" %%% "portable-scala-reflect" % "1.1.2",
 
-  // https://github.com/scala-js/scala-js-macrotask-executor
+  libraryDependencies += "org.portable-scala" %%% "portable-scala-reflect" % "1.1.2",
   libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
-  // https://www.scala-js.org/news/2022/04/04/announcing-scalajs-1.10.0
   libraryDependencies += "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0",
 
   // scalajs-bundler with webpack
@@ -57,15 +61,15 @@ def readJsDependencies(baseDirectory: File, field: String): Seq[(String, String)
   Seq.empty
 }
 
-// shared project which contains api definitions.
-// these definitions are used for type safe implementations
-// of client and server
-lazy val api = crossProject(JSPlatform, JVMPlatform)
+lazy val api = project
+//  crossProject(JSPlatform, JVMPlatform)
+//  .crossType(CrossType.Pure)
   .in(file("projects/api"))
   .enablePlugins(smithy4s.codegen.Smithy4sCodegenPlugin)
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % versions.smithy4s,
     ),
   )
 
@@ -76,40 +80,37 @@ lazy val db = project
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
     quillcodegenJdbcUrl := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
-
-    //quillcodegenSetupTask := Def.taskDyn {
-    //  IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-    //  executeSqlFile(file("./schema.sql"))
-    //},
     quillcodegenSetupTask := {
       val dbFile = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
       val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
       require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
     },
+//    quillcodegenSetupTask := Def.taskDyn {
+//      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+//      executeSqlFile(file("./schema.sql"))
+//    },
 
     libraryDependencies ++= Seq(
+      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
       "io.getquill"   %% "quill-doobie"       % versions.quill,
       "org.flywaydb" % "flyway-core" % "10.6.0",
-      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
     )
   )
 
 lazy val httpServer = project
   .in(file("projects/httpServer"))
-  .dependsOn(api.jvm, db)
+  .dependsOn(api, db)
   .settings(commonSettings)
   .settings(
+    reStart / javaOptions := Seq("-Djava.library.path=/home/cornerman/projects/kicks/projects/db/lib-system"),
     assembly / assemblyMergeStrategy := {
       //https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
       case PathList("META-INF", "services", _*) => MergeStrategy.filterDistinctLines
-      case PathList("META-INF", _*) => MergeStrategy.discard
-      case "module-info.class" => MergeStrategy.discard
+      case PathList("META-INF", _*) | "module-info.class" => MergeStrategy.discard
       case x => (assembly / assemblyMergeStrategy).value(x)
     },
     libraryDependencies ++= Seq(
       "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
-      "com.outr"                     %% "scribe"                  % versions.scribe,
-      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % versions.smithy4s,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
       "org.http4s" %% "http4s-ember-server" % versions.http4s,
       "org.http4s" %% "http4s-dsl"          % versions.http4s,
@@ -119,7 +120,7 @@ lazy val httpServer = project
 lazy val webapp = project
   .in(file("projects/webapp"))
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
-  .dependsOn(api.js)
+//  .dependsOn(api.js)
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(

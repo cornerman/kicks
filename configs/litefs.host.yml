@@ -12,3 +12,4 @@ lease:
 
 exec:
   - cmd: "tail -f /dev/null"
+  - cmd: litestream
