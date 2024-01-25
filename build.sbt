@@ -4,7 +4,7 @@ import scala.collection.immutable.Seq
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "3.3.1"
 
 Global / excludeLintKeys += webpackDevServerPort // TODO:
 
@@ -18,17 +18,17 @@ val versions = new {
 }
 
 // Uncomment, if you want to use snapshot dependencies from sonatype or jitpack
-// ThisBuild / resolvers ++= Seq(
-//   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-//   "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots", // https://central.sonatype.org/news/20210223_new-users-on-s01/
+ ThisBuild / resolvers ++= Seq(
+   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+   "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots", // https://central.sonatype.org/news/20210223_new-users-on-s01/
 //   "Jitpack" at "https://jitpack.io",
-// )
+ )
 
 val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
 
 lazy val commonSettings = Seq(
-  addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
-  addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
+  //addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
+  //addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
 
   // overwrite scalacOptions "-Xfatal-warnings" from https://github.com/DavidGregory084/sbt-tpolecat
   if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
@@ -44,11 +44,12 @@ lazy val commonSettings = Seq(
 lazy val scalaJsSettings = Seq(
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
 
-  libraryDependencies += "org.portable-scala" %%% "portable-scala-reflect" % "1.1.2",
+  libraryDependencies += ("org.portable-scala" %%% "portable-scala-reflect" % "1.1.2").cross(CrossVersion.for3Use2_13),
   libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
-  libraryDependencies += "org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0",
+  libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13),
 
-  // scalajs-bundler with webpack
+
+    // scalajs-bundler with webpack
   webpack / version               := "5.75.0",
   webpackCliVersion               := "5.0.0",
   startWebpackDevServer / version := "4.11.1",
@@ -61,7 +62,7 @@ lazy val rpc = crossProject(JSPlatform, JVMPlatform)
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.cornerman" %%% "sloth" % "0.7.1+14-13a903d6-SNAPSHOT",
+      "com.github.cornerman" %%% "sloth" % "0.7.1+15-90fae7c7-SNAPSHOT",
     ),
   )
 
