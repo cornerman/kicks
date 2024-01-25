@@ -55,17 +55,19 @@ lazy val scalaJsSettings = Seq(
   useYarn                         := true,
 )
 
-def readJsDependencies(baseDirectory: File, field: String): Seq[(String, String)] = {
-  // val packageJson = ujson.read(IO.read(new File(s"$baseDirectory/package.json")))
-  // packageJson(field).obj.mapValues(_.str.toString).toSeq
-  Seq.empty
-}
+lazy val rpc = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("projects/rpc"))
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.github.cornerman" %%% "sloth" % "0.7.1+14-13a903d6-SNAPSHOT",
+    ),
+  )
 
 lazy val api = project
-//  crossProject(JSPlatform, JVMPlatform)
-//  .crossType(CrossType.Pure)
-  .in(file("projects/api"))
   .enablePlugins(smithy4s.codegen.Smithy4sCodegenPlugin)
+  .in(file("projects/api"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
@@ -94,15 +96,18 @@ lazy val db = project
       "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
       "io.getquill"   %% "quill-doobie"       % versions.quill,
       "org.flywaydb" % "flyway-core" % "10.6.0",
+      "com.github.jsqlparser" % "jsqlparser" % "4.8",
     )
   )
 
 lazy val httpServer = project
   .in(file("projects/httpServer"))
-  .dependsOn(api, db)
+  .dependsOn(api, rpc.jvm, db)
   .settings(commonSettings)
   .settings(
     reStart / javaOptions := Seq("-Djava.library.path=/home/cornerman/projects/kicks/projects/db/lib-system"),
+    Compile / run / fork := true,
+    Compile / run / javaOptions := (reStart / javaOptions).value,
     assembly / assemblyMergeStrategy := {
       //https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
       case PathList("META-INF", "services", _*) => MergeStrategy.filterDistinctLines
@@ -112,6 +117,7 @@ lazy val httpServer = project
     libraryDependencies ++= Seq(
       "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
+      "org.http4s" %% "http4s-ember-client" % versions.http4s,
       "org.http4s" %% "http4s-ember-server" % versions.http4s,
       "org.http4s" %% "http4s-dsl"          % versions.http4s,
     )
@@ -119,8 +125,8 @@ lazy val httpServer = project
 
 lazy val webapp = project
   .in(file("projects/webapp"))
-  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin, ScalablyTypedConverterPlugin)
-//  .dependsOn(api.js)
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+  .dependsOn(rpc.js)
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(
@@ -128,13 +134,20 @@ lazy val webapp = project
       "com.github.cornerman" %%% "colibri-router"       % versions.colibri,
       "com.github.cornerman" %%% "colibri-reactive"     % versions.colibri,
     ),
-    Compile / npmDependencies ++= readJsDependencies(baseDirectory.value, "dependencies") ++ Seq(
+    Compile / npmDependencies ++= Seq(
       "snabbdom"               -> "github:outwatch/snabbdom.git#semver:0.7.5", // for outwatch, workaround for: https://github.com/ScalablyTyped/Converter/issues/293
     ),
-    stIgnore ++= List(
-      "snabbdom",
+    Compile / npmDevDependencies ++= Seq(
+      "@fun-stack/fun-pack" -> "^0.3.5",
+      "autoprefixer" -> "^10.4.12",
+      "daisyui" -> "^3.0.3",
+      "postcss" -> "^8.4.16",
+      "postcss-loader" -> "^7.0.1",
+      "tailwindcss" -> "^3.1.8"
     ),
-    Compile / npmDevDependencies   ++= readJsDependencies(baseDirectory.value, "devDependencies"),
+//    stIgnore ++= List(
+//      "snabbdom",
+//    ),
     scalaJSUseMainModuleInitializer := true,
     webpackDevServerPort := sys.env
       .get("FRONTEND_PORT")

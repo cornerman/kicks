@@ -5,7 +5,6 @@ import colibri.reactive.Rx
 import kicks.webapp.state.{AppCommand, AppState, SubState}
 import outwatch._
 import outwatch.dsl._
-import funstack.client.web.Fun
 
 object App {
 
@@ -49,13 +48,7 @@ object App {
       cls := "navbar shadow-lg",
     )
 
-  def authControls: VModM[AppState] = VMod.access[AppState] { state =>
-    state.auth.user match {
-      case Some(user) =>
-        a(s"Logout (${user.info.email})", href := Fun.auth.logoutUrl, cls := "btn btn-primary", cls := "logout-button")
-      case None => a("Login", href := Fun.auth.loginUrl, cls := "btn btn-primary", cls := "login-button")
-    }
-  }
+  def authControls = div("auth")
 
   def pageLink(name: String, page: Page) = {
     val styling = Page.current.map {
@@ -68,21 +61,9 @@ object App {
 
   def pageBody = div(
     cls := "p-10 mb-auto",
-    // client-side router depending on the path in the address bar
     Page.current.map {
-      case Page.Home =>
-        div(
-          cls := "text-bold",
-          "Welcome!",
-        )
-      case Page.Api =>
-        div(
-          cls := "space-y-4",
-          Components.httpApi,
-          Components.httpRpcApi,
-          Components.websocketRpcApi,
-          Components.websocketEvents,
-        )
+      case Page.Home => div("HOME")
+      case Page.Api => div("AHJA")
     },
   )
 

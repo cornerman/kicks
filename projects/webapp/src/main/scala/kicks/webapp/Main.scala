@@ -3,8 +3,7 @@ package kicks.webapp
 import cats.implicits._
 import cats.effect.{IO, IOApp}
 import outwatch.{Outwatch, VNode}
-import funstack.client.web.Fun
-import kicks.webapp.state.{AppState, Auth}
+import kicks.webapp.state.AppState
 
 object Main extends IOApp.Simple {
   LoadCss()
@@ -12,15 +11,17 @@ object Main extends IOApp.Simple {
   private val app: VNode = {
     import outwatch.dsl._
 
+    sloth.internal.RouterMacro
+
+    val state = AppState()
     div(
-      Fun.auth.currentUser.map { user =>
-        val state = AppState(Auth(user))
-        App.layout.provide(state)
-      }
+      RpcClient.requestRpc.foo("wolf"),
+      RpcClient.eventRpc.foo("peter"),
+      App.layout.provide(state)
     )
   }
 
   override def run = {
-    Fun.wsRpc.start &> Outwatch.renderReplace[IO]("#app", app)
+    Outwatch.renderReplace[IO]("#app", app)
   }
 }
