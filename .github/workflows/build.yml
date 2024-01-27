@@ -22,7 +22,7 @@ jobs:
       - uses: coursier/cache-action@v6
       - uses: olafurpg/setup-scala@v14
         with:
-          java-version: openjdk@1.19
+          java-version: openjdk@1.17
 
       - uses: actions/setup-node@v3
         with:
