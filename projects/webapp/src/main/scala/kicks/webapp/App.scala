@@ -1,10 +1,9 @@
 package kicks.webapp
 
 import colibri.Observable
-import colibri.reactive.Rx
 import kicks.webapp.state.{AppCommand, AppState, SubState}
-import outwatch._
-import outwatch.dsl._
+import outwatch.*
+import outwatch.dsl.*
 
 object App {
 

@@ -1,7 +1,7 @@
 package kicks.webapp
 
 import colibri.Subject
-import colibri.router._
+import colibri.router.*
 
 sealed trait Page {
   final def href = outwatch.dsl.href := s"#${Page.toPath(this).pathString}"

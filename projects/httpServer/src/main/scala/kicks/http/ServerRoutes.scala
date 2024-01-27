@@ -1,23 +1,21 @@
 package kicks.http
 
-import cats.implicits.*
 import cats.effect.IO
+import cats.implicits.*
 import chameleon.{Deserializer, Serializer}
+import fs2.Stream
+import kicks.api.KicksServiceGen
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{HttpRoutes, Response, ServerSentEvent}
-import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
-import kicks.api.KicksServiceGen
-import fs2.Stream
-import sloth.{Request, RequestPath, Router, ServerFailure}
+import sloth.{RequestPath, Router, ServerFailure}
 import smithy4s.Transformation
+import smithy4s.http4s.{SimpleRestJsonBuilder, swagger}
 
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
-  import dsl._
+  import dsl.*
 
   private def customRoutes(state: AppState): HttpRoutes[IO] = {
-    val listener = new DbListener(state)
-
     implicit val serializer: Serializer[String, String]     = x => x
     implicit val deserializer: Deserializer[String, String] = x => Right(x)
 

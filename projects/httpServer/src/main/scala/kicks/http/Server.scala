@@ -1,12 +1,11 @@
 package kicks.http
 
-import cats.implicits.*
 import cats.effect.IO
+import cats.implicits.*
 import com.comcast.ip4s.*
-import cps.macros.Async
+import cps.reify
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
-import cps.reify
 
 import scala.concurrent.duration.DurationInt
 

@@ -1,7 +1,7 @@
 package kicks.http
 
-import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits.*
 import kicks.db.DbMigrations
 import org.http4s.ember.client.EmberClientBuilder
 

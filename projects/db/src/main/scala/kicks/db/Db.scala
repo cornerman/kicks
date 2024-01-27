@@ -1,9 +1,8 @@
 package kicks.db
 
+import cats.implicits.*
 import doobie.ConnectionIO
 import doobie.implicits.*
-import cats.implicits.*
-import io.getquill.given
 import io.getquill.*
 import kicks.db.schema.*
 import kicks.db.schema.SchemaExtensions.*
@@ -18,7 +17,7 @@ object WithId {
 
 object Db {
   private val ctx = doobie.DoobieContext.SQLite(Literal)
-  import ctx._
+  import ctx.*
 
   def fun(person: Foo): ConnectionIO[Unit] = {
     val queryRun: ConnectionIO[Unit]  = run(FooDao.query).map(println(_))
@@ -36,7 +35,7 @@ object Db {
     }
 
     inline def update(entity: Entity): ConnectionIO[Unit] = {
-      run(query.updateValue(entity))
+      run(query.updateValue(entity)).void
     }
 
     inline def upsert(entity: Entity): ConnectionIO[Unit] = {
@@ -59,6 +58,4 @@ object Db {
 //  repo.update(Person(-1, "heinz", None, 5))
 //  repo.insert(lift(Person(-1, "heinz", None, 5)))
 //  repo.all
-
-  ()
 }

@@ -1,7 +1,6 @@
 package kicks.http
 
 import cats.effect.IO
-import fs2.Stream
 import smithy4s.Transformation
 
 object AppTypes {

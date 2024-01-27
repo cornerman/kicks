@@ -12,7 +12,7 @@ object DbMigrations {
       .failOnMissingLocations(true)
       .load()
 
-    flyway.migrate(): Unit
+    val _ = flyway.migrate()
   }
 
 }

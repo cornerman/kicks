@@ -1,15 +1,14 @@
 package kicks.webapp
 
-import cats.implicits._
 import cats.effect.{IO, IOApp}
-import outwatch.{Outwatch, VNode}
 import kicks.webapp.state.AppState
+import outwatch.{Outwatch, VNode}
 
 object Main extends IOApp.Simple {
   LoadCss()
 
   private val app: VNode = {
-    import outwatch.dsl._
+    import outwatch.dsl.*
 
     sloth.internal.RouterMacro
 

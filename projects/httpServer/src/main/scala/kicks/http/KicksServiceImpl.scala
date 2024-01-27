@@ -1,10 +1,10 @@
 package kicks.http
 
 import cats.effect.IO
+import doobie.implicits.*
 import kicks.api.{AppError, Greeting, KicksServiceGen}
 import kicks.db.Db
 import kicks.db.schema.Foo
-import doobie.implicits._
 
 class KicksServiceImpl(state: AppState) extends KicksServiceGen[AppTypes.ServiceResult] {
   override def hello(name: String, town: Option[String]) = name match {

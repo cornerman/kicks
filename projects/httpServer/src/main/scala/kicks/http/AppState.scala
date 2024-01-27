@@ -1,7 +1,6 @@
 package kicks.http
 
-import cats.effect.{Async, IO}
-import doobie.LogHandler
+import cats.effect.IO
 import doobie.util.transactor.Transactor
 import fs2.Stream
 import kicks.rpc.{EventRpc, RequestRpc}

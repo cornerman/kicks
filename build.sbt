@@ -29,17 +29,17 @@ ThisBuild / resolvers ++= Seq(
 val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
 
 lazy val commonSettings = Seq(
-  // addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
-  // addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
-
-  // overwrite scalacOptions "-Xfatal-warnings" from https://github.com/DavidGregory084/sbt-tpolecat
+  // Default scalacOptions set by: https://github.com/DavidGregory084/sbt-tpolecat
   if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
-//  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
-
+  scalacOptions ++= Seq(
+    // TODO: https://github.com/zio/zio-quill/issues/2639
+    "-Wconf:msg=Questionable row-class found:s"
+  ),
   libraryDependencies ++= Seq(
-    "com.github.rssh"  %% "dotty-cps-async"               % "0.9.19",
-    "com.github.rssh" %%% "cps-async-connect-cats-effect" % "0.9.19",
+    "com.github.rssh"  %% "dotty-cps-async"               % versions.dottyCpsAsync,
+    "com.github.rssh" %%% "cps-async-connect-cats-effect" % versions.dottyCpsAsync,
+    "com.github.rssh" %%% "cps-async-connect-fs2"         % versions.dottyCpsAsync,
     "com.outr"         %% "scribe"                        % versions.scribe,
   ),
 )
