@@ -1,0 +1,19 @@
+name: "Scala Steward"
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+jobs:
+  scala-steward:
+    name: "Scala Steward"
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/marketplace/actions/scala-steward-github-action
+      - name: Launch Scala Steward
+        uses: scala-steward-org/scala-steward-action@1812c6aeba6a1ecf569bc336c1188dc0865cc33e # pin@v2
+        with:
+          # Using the GITHUB_TOKEN has the disadvantage that workflows do not run on the created PRs.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          author-name: scala-steward-bot

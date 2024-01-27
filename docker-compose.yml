@@ -1,8 +1,6 @@
 version: '3'
 services:
   nginx:
-    profiles:
-      - docker
     image: nginx:alpine
     volumes:
       - ./configs/nginx.conf:/etc/nginx/nginx.conf
@@ -10,8 +8,6 @@ services:
       - "8080:80"
 
   litefs-primary:
-    profiles:
-      - docker
     build:
       context: .
       args:
@@ -21,15 +17,13 @@ services:
       - litefs-storage-primary:/var/lib/litefs
     ports:
     - "8081:8080"
-    - "20212:20202"
+    - "20202:20202"
     environment:
       IS_PRIMARY: "true"
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db"
 
   litefs-replica1:
-    profiles:
-      - docker
     build:
       context: .
       args:
@@ -39,35 +33,11 @@ services:
       - litefs-storage-replica1:/var/lib/litefs
     ports:
     - "8082:8080"
-    - "20222:20202"
+    - "20203:20202"
     environment:
       IS_PRIMARY: "false"
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db"
-
-  litefs-host:
-    profiles:
-      - host
-    build:
-      context: .
-      args:
-        - "LITEFS_CONFIG=configs/litefs.host.yml"
-        - "REQUIRE_JAR=false"
-    privileged: true
-    devices:
-      - /dev/fuse
-    volumes:
-      - litefs-storage-host:/var/lib/litefs
-      - type: bind
-        source: ./litefs-share
-        target: /litefs-share
-        bind:
-          propagation: rshared
-    ports:
-    - "20202:20202"
-    environment:
-      IS_PRIMARY: "true"
-      ADVERTISE_URL: "http://litefs-host:20202"
 
 volumes:
   litefs-storage-primary:

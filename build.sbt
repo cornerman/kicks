@@ -1,4 +1,4 @@
-import scala.collection.immutable.Seq
+import org.scalajs.linker.interface.ModuleSplitStyle
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
@@ -23,7 +23,6 @@ val versions = new {
 ThisBuild / resolvers ++= Seq(
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots", // https://central.sonatype.org/news/20210223_new-users-on-s01/
-//   "Jitpack" at "https://jitpack.io",
 )
 
 val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
@@ -45,16 +44,9 @@ lazy val commonSettings = Seq(
 )
 
 lazy val scalaJsSettings = Seq(
-  scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
   libraryDependencies += ("org.portable-scala" %%% "portable-scala-reflect"      % "1.1.2").cross(CrossVersion.for3Use2_13),
-  libraryDependencies += "org.scala-js"        %%% "scala-js-macrotask-executor" % "1.1.1",
   libraryDependencies += ("org.scala-js"       %%% "scalajs-java-securerandom"   % "1.0.0").cross(CrossVersion.for3Use2_13),
-
-  // scalajs-bundler with webpack
-  webpack / version               := "5.75.0",
-  webpackCliVersion               := "5.0.0",
-  startWebpackDevServer / version := "4.11.1",
-  useYarn                         := true,
+  libraryDependencies += "org.scala-js"        %%% "scala-js-macrotask-executor" % "1.1.1",
 )
 
 lazy val rpc = crossProject(JSPlatform, JVMPlatform)
@@ -115,7 +107,7 @@ lazy val httpServer = project
       // https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
       case PathList("META-INF", "services", _*)           => MergeStrategy.filterDistinctLines
       case PathList("META-INF", _*) | "module-info.class" => MergeStrategy.discard
-      case x                                              => (assembly / assemblyMergeStrategy).value(x)
+      case x                                              => MergeStrategy.last
     },
     libraryDependencies ++= Seq(
       "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
@@ -128,7 +120,7 @@ lazy val httpServer = project
 
 lazy val webapp = project
   .in(file("projects/webapp"))
-  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+  .enablePlugins(ScalaJSPlugin, ScalablyTypedConverterExternalNpmPlugin)
   .dependsOn(rpc.js)
   .settings(commonSettings, scalaJsSettings)
   .settings(
@@ -137,45 +129,16 @@ lazy val webapp = project
       "com.github.cornerman" %%% "colibri-router"   % versions.colibri,
       "com.github.cornerman" %%% "colibri-reactive" % versions.colibri,
     ),
-    Compile / npmDependencies ++= Seq(
-      "snabbdom" -> "github:outwatch/snabbdom.git#semver:0.7.5" // for outwatch, workaround for: https://github.com/ScalablyTyped/Converter/issues/293
+
+    // https://www.scala-js.org/doc/tutorial/scalajs-vite.html
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.ESModule).withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("kicks")))
+    },
+
+    // scalablytyped
+    externalNpm := baseDirectory.value,
+    stIgnore ++= List(
+      "snabbdom",
     ),
-    Compile / npmDevDependencies ++= Seq(
-      "@fun-stack/fun-pack" -> "^0.3.5",
-      "autoprefixer"        -> "^10.4.12",
-      "daisyui"             -> "^3.0.3",
-      "postcss"             -> "^8.4.16",
-      "postcss-loader"      -> "^7.0.1",
-      "tailwindcss"         -> "^3.1.8",
-    ),
-//    stIgnore ++= List(
-//      "snabbdom",
-//    ),
-    scalaJSUseMainModuleInitializer   := true,
-    webpackDevServerPort              := sys.env.get("FRONTEND_PORT").flatMap(port => scala.util.Try(port.toInt).toOption).getOrElse(12345),
-    webpackDevServerExtraArgs         := Seq("--color"),
-    fullOptJS / webpackEmitSourceMaps := true,
-    fastOptJS / webpackEmitSourceMaps := true,
-    fastOptJS / webpackBundlingMode   := BundlingMode.LibraryOnly(),
-    fastOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.dev.js"),
-    fullOptJS / webpackConfigFile     := Some(baseDirectory.value / "webpack.config.prod.js"),
   )
-
-addCommandAlias("prod", "; lambda/fullOptJS/webpack; webapp/fullOptJS/webpack")
-addCommandAlias("prodf", "webapp/fullOptJS/webpack")
-addCommandAlias("prodb", "lambda/fullOptJS/webpack")
-addCommandAlias("dev", "devInitAll; devWatchAll; devDestroyFrontend")
-addCommandAlias("devf", "devInitFrontend; devWatchFrontend; devDestroyFrontend") // compile only frontend
-addCommandAlias("devb", "devInitBackend; devWatchBackend")                       // compile only backend
-
-// devInitBackend needs to execute {...}/fastOptJS/webpack, to prepare all npm dependencies.
-// We want to avoid this expensive preparation in the hot-reload process,
-// and therefore only watch {...}/fastOptJS, where dependencies can be resolved from the previously prepared
-// node_modules folder.
-addCommandAlias("devInitBackend", "lambda/fastOptJS/webpack")
-addCommandAlias("devInitFrontend", "webapp/fastOptJS/startWebpackDevServer; webapp/fastOptJS/webpack")
-addCommandAlias("devInitAll", "devInitFrontend; devInitBackend")
-addCommandAlias("devWatchFrontend", "~; webapp/fastOptJS")
-addCommandAlias("devWatchBackend", "~; lambda/fastOptJS")
-addCommandAlias("devWatchAll", "~; lambda/fastOptJS; webapp/fastOptJS; compile; Test/compile")
-addCommandAlias("devDestroyFrontend", "webapp/fastOptJS/stopWebpackDevServer")

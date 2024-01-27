@@ -1,12 +1,11 @@
 { pkgs ? import <nixpkgs> {} }:
 
 let
-  pname = "fun";
+  pname = "kicks";
 in
   pkgs.mkShell {
     nativeBuildInputs = with pkgs; [
       git
-      terraform
 
       nodejs-16_x
       yarn

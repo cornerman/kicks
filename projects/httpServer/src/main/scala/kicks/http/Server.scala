@@ -11,7 +11,7 @@ import scala.concurrent.duration.DurationInt
 
 object Server {
   def start(state: AppState) = for {
-    routes <- ServerRoutes.all(state)
+    routes <- ServerRoutes.all(state).liftTo[IO]
     httpApp = Logger.httpApp(true, true)(routes.orNotFound)
 
     _ <- EmberServerBuilder

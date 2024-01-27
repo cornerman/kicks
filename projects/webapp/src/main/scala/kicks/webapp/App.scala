@@ -17,6 +17,7 @@ object App {
 
   def layout: VNodeM[AppState] =
     div(
+      "foo",
       mySub.provideSomeF[Observable, AppState](_.subcomponent.observable),
       cls := "flex flex-col h-screen",
       pageHeader,

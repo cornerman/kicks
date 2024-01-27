@@ -51,13 +51,12 @@ object ServerRoutes {
     }
   }
 
-  import smithy4s.Transformation.given
   def all(state: AppState) = {
     val serviceImpl        = new KicksServiceImpl(state)
     val serviceImplUnified = serviceImpl.transform(AppTypes.serviceResultTransform)(Transformation.service_absorbError_transformation)
 
     for {
-      kicksRoutes    <- SimpleRestJsonBuilder.routes(serviceImplUnified).make.liftTo[IO]
+      kicksRoutes    <- SimpleRestJsonBuilder.routes(serviceImplUnified).make
       kicksDocsRoutes = swagger.docs[IO](KicksServiceGen)
     } yield kicksRoutes <+> kicksDocsRoutes <+> customRoutes(state)
   }

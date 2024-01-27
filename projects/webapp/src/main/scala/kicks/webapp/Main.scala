@@ -5,7 +5,6 @@ import kicks.webapp.state.AppState
 import outwatch.{Outwatch, VNode}
 
 object Main extends IOApp.Simple {
-  LoadCss()
 
   private val app: VNode = {
     import outwatch.dsl.*
