@@ -1,32 +1,64 @@
 package kicks.db
 
 import doobie.ConnectionIO
-import doobie.implicits._
-import cats.implicits._
-import io.getquill.{EntityQuery, Literal, SqliteDialect}
-import io.getquill.doobie.DoobieContext
-import kicks.db.schema._
+import doobie.implicits.*
+import cats.implicits.*
+import io.getquill.given
+import io.getquill.*
+import kicks.db.schema.*
+import kicks.db.schema.SchemaExtensions.*
 
-private object DbContext extends DoobieContext.SQLite(Literal) with SchemaExtensions
+sealed trait WithId[EntityId, Entity] {
+  def getId(entity: Entity): EntityId
+  def setId(entity: Entity, entityId: EntityId): Entity
+}
+object WithId {
+  def apply[EntityId, Entity](implicit withId: WithId[EntityId, Entity]) = withId
+}
 
 object Db {
-  import DbContext._
+  private val ctx = doobie.DoobieContext.SQLite(Literal)
+  import ctx._
 
   def fun(person: Foo): ConnectionIO[Unit] = {
-    import io.getquill._
-    val queryRun: ConnectionIO[Unit]  = run(quote(FooDao.query)).map(println(_))
-    val insertRun: ConnectionIO[Unit] = run(quote(FooDao.query.insertValue(lazyLift(person)))).map(println(_))
-    (queryRun *> insertRun *> queryRun)
+    val queryRun: ConnectionIO[Unit]  = run(FooDao.query).map(println(_))
+    val insertRun: ConnectionIO[Unit] = run(FooDao.query.insertValue(lift(person))).map(println(_))
+    queryRun *> insertRun *> queryRun
   }
 
-//  def fun2(person: Foo): ConnectionIO[Unit] = {
-//    val queryRun: ConnectionIO[Unit]  = run(dynamicQuerySchema[Foo]("foo")).map(println(_))
-//    val insertRun: ConnectionIO[Unit] = run(quote(dynamicQuerySchema[Foo]("foo").insertValue(lift(person)))).map(println(_))
-//    (queryRun *> insertRun *> queryRun)
-//  }
+  class DbEntityRepository[EntityId, Entity: WithId[EntityId, *]](query: EntityQuery[Entity]) {
+    inline def all: ConnectionIO[List[Entity]] = {
+      run(query)
+    }
 
-//  def foo[T](person: T, query: DynamicEntityQuery[T]): ConnectionIO[Unit] = {
-//    val queryRun: ConnectionIO[T]  = run(query.q)
-//    queryRun.map(println(_))
-//  }
+    inline def insert(inline entity: Entity): ConnectionIO[EntityId] = {
+      run(query.insertValue(lift(entity)).onConflictIgnore).as(???)
+    }
+
+    inline def update(entity: Entity): ConnectionIO[Unit] = {
+      run(query.updateValue(entity))
+    }
+
+    inline def upsert(entity: Entity): ConnectionIO[Unit] = {
+//      run(query.insertValue(entity).onConflictUpdate(_.id))
+      ???
+    }
+
+    inline def delete(entityId: Entity): ConnectionIO[Unit] = {
+      //      run(query.insertValue(entity).onConflictUpdate(_.id))
+      ???
+    }
+  }
+
+  implicit val PersonWithId: WithId[Int, Person] = new WithId[Int, Person] {
+    override def getId(entity: Person): Int                   = entity.id
+    override def setId(entity: Person, entityId: Int): Person = entity.copy(id = entityId)
+  }
+  val repo = new DbEntityRepository[Int, Person](PersonDao.query)
+
+//  repo.update(Person(-1, "heinz", None, 5))
+//  repo.insert(lift(Person(-1, "heinz", None, 5)))
+//  repo.all
+
+  ()
 }

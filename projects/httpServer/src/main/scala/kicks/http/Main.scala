@@ -15,7 +15,7 @@ object Main extends IOApp {
 //    DbEvents.setup(jdbcUrl)
 
     val runMigrations = DbMigrations.run(jdbcUrl = jdbcUrl)
-    val startServer = Server.start(state)
+    val startServer   = Server.start(state)
 
     val runner = EmberClientBuilder.default[IO].build.use { client =>
       LitefsEventListener.listen(client).evalTap(IO.println).compile.drain
@@ -24,10 +24,10 @@ object Main extends IOApp {
     println(runMode)
 
     val program = runMode match {
-      case Some("run") => startServer.as(ExitCode.Success)
-      case Some("migrate") => runMigrations.as(ExitCode.Success)
+      case Some("run")                    => startServer.as(ExitCode.Success)
+      case Some("migrate")                => runMigrations.as(ExitCode.Success)
       case Some("migrate-and-run") | None => (runMigrations *> startServer).as(ExitCode.Success)
-      case Some(mode) => IO.println(s"Unknown mode: $mode. Expected: run, migrate, migrate-and-run.").as(ExitCode.Error)
+      case Some(mode)                     => IO.println(s"Unknown mode: $mode. Expected: run, migrate, migrate-and-run.").as(ExitCode.Error)
     }
 
     runner.attempt.map(println(_)) *> program

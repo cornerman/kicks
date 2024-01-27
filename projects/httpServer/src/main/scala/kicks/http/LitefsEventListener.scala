@@ -1,10 +1,9 @@
 package kicks.http
 
 import cats.effect.IO
-import fs2.{Stream, text}
+import fs2.{text, Stream}
 import com.github.plokhotnyuk.jsoniter_scala.core.JsonCodec
 import org.http4s.client.Client
-import org.http4s.implicits.http4sLiteralsSyntax
 import org.http4s.{EventStream, Method, Request, ServerSentEvent, Uri}
 
 import scala.concurrent.duration.DurationInt

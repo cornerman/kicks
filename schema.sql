@@ -10,15 +10,26 @@ CREATE TABLE foo(wolf text);
 CREATE TABLE Address (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     street TEXT,
-    city TEXT NOT NULL
+    street_number TEXT
 );
 
 -- Create Person table
 CREATE TABLE Person (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    foo TEXT,
     name TEXT NOT NULL,
-    age INTEGER,
+    age Integer,
     address_id INTEGER,
-    bar text,
+    bar text NOT NULL,
+    blub INTEGER NOT NULL,
     FOREIGN KEY (address_id) REFERENCES Address(id)
 );
+
+--CREATE INDEX idx_posts_user_id ON Address (id);
+--CREATE INDEX idx_comments_post_id ON Person (id);
+--CREATE VIEW user_post_counts AS SELECT name from Person;
+--CREATE TRIGGER update_last_active_after_post
+--AFTER INSERT ON Person
+--BEGIN
+--    insert into foo values('person');
+--END;

@@ -14,7 +14,4 @@ sealed trait RpcCommand
 //}
 
 sealed trait RpcEvent
-object RpcEvent {
-
-}
-
+object RpcEvent {}

@@ -1,4 +1,3 @@
-
 import scala.collection.immutable.Seq
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -8,48 +7,50 @@ ThisBuild / scalaVersion := "3.3.1"
 
 Global / excludeLintKeys += webpackDevServerPort // TODO:
 
+ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
+
 val versions = new {
-  val outwatch = "1.0.0+4-ea3b233c-SNAPSHOT"
-  val colibri  = "0.8.2"
-  val scribe = "3.13.0"
-  val http4s = "0.23.24"
-  val smithy4s = "0.18.5"
-  val quill = "4.8.1"
+  val outwatch      = "1.0.0+4-ea3b233c-SNAPSHOT"
+  val colibri       = "0.8.2"
+  val scribe        = "3.13.0"
+  val http4s        = "0.23.24"
+  val smithy4s      = "0.18.5"
+  val quill         = "4.8.1"
+  val dottyCpsAsync = "0.9.19"
 }
 
 // Uncomment, if you want to use snapshot dependencies from sonatype or jitpack
- ThisBuild / resolvers ++= Seq(
-   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-   "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots", // https://central.sonatype.org/news/20210223_new-users-on-s01/
+ThisBuild / resolvers ++= Seq(
+  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+  "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots", // https://central.sonatype.org/news/20210223_new-users-on-s01/
 //   "Jitpack" at "https://jitpack.io",
- )
+)
 
 val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
 
 lazy val commonSettings = Seq(
-  //addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
-  //addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
+  // addCompilerPlugin("org.typelevel" % "kind-projector"     % "0.13.2" cross CrossVersion.full),
+  // addCompilerPlugin("com.olegpy"   %% "better-monadic-for" % "0.3.1"),
 
   // overwrite scalacOptions "-Xfatal-warnings" from https://github.com/DavidGregory084/sbt-tpolecat
   if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
 //  scalacOptions ++= Seq("-Ymacro-annotations", "-Vimplicits", "-Vtype-diffs", "-Xasync"),
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
 
-  //  libraryDependencies += "org.typelevel" %% "cats-effect-cps" % "0.5-99e8dbf-20240118T213220Z-SNAPSHOT",
   libraryDependencies ++= Seq(
-    "com.outr"                     %% "scribe"                  % versions.scribe,
-  )
+    "com.github.rssh"  %% "dotty-cps-async"               % "0.9.19",
+    "com.github.rssh" %%% "cps-async-connect-cats-effect" % "0.9.19",
+    "com.outr"         %% "scribe"                        % versions.scribe,
+  ),
 )
 
 lazy val scalaJsSettings = Seq(
   scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+  libraryDependencies += ("org.portable-scala" %%% "portable-scala-reflect"      % "1.1.2").cross(CrossVersion.for3Use2_13),
+  libraryDependencies += "org.scala-js"        %%% "scala-js-macrotask-executor" % "1.1.1",
+  libraryDependencies += ("org.scala-js"       %%% "scalajs-java-securerandom"   % "1.0.0").cross(CrossVersion.for3Use2_13),
 
-  libraryDependencies += ("org.portable-scala" %%% "portable-scala-reflect" % "1.1.2").cross(CrossVersion.for3Use2_13),
-  libraryDependencies += "org.scala-js" %%% "scala-js-macrotask-executor" % "1.1.1",
-  libraryDependencies += ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13),
-
-
-    // scalajs-bundler with webpack
+  // scalajs-bundler with webpack
   webpack / version               := "5.75.0",
   webpackCliVersion               := "5.0.0",
   startWebpackDevServer / version := "4.11.1",
@@ -62,8 +63,8 @@ lazy val rpc = crossProject(JSPlatform, JVMPlatform)
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.cornerman" %%% "sloth" % "0.7.1+15-90fae7c7-SNAPSHOT",
-    ),
+      "com.github.cornerman" %%% "sloth" % "0.7.1+15-90fae7c7-SNAPSHOT"
+    )
   )
 
 lazy val api = project
@@ -72,8 +73,8 @@ lazy val api = project
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % versions.smithy4s,
-    ),
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s" % versions.smithy4s
+    )
   )
 
 lazy val db = project
@@ -82,9 +83,9 @@ lazy val db = project
   .settings(commonSettings)
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
+    quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
     quillcodegenSetupTask := {
-      val dbFile = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
       val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
       require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
     },
@@ -94,11 +95,12 @@ lazy val db = project
 //    },
 
     libraryDependencies ++= Seq(
-      "org.xerial"       % "sqlite-jdbc"          % "3.44.1.0",
-      "io.getquill"   %% "quill-doobie"       % versions.quill,
-      "org.flywaydb" % "flyway-core" % "10.6.0",
-      "com.github.jsqlparser" % "jsqlparser" % "4.8",
-    )
+      "org.xerial"            % "sqlite-jdbc"  % "3.44.1.0",
+      "io.getquill"          %% "quill-doobie" % versions.quill,
+      "org.tpolecat"         %% "doobie-core"  % "1.0.0-RC5",
+      "org.flywaydb"          % "flyway-core"  % "10.6.0",
+      "com.github.jsqlparser" % "jsqlparser"   % "4.8",
+    ),
   )
 
 lazy val httpServer = project
@@ -106,22 +108,22 @@ lazy val httpServer = project
   .dependsOn(api, rpc.jvm, db)
   .settings(commonSettings)
   .settings(
-    reStart / javaOptions := Seq("-Djava.library.path=/home/cornerman/projects/kicks/projects/db/lib-system"),
-    Compile / run / fork := true,
+    reStart / javaOptions       := Seq("-Djava.library.path=/home/cornerman/projects/kicks/projects/db/lib-system"),
+    Compile / run / fork        := true,
     Compile / run / javaOptions := (reStart / javaOptions).value,
     assembly / assemblyMergeStrategy := {
-      //https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
-      case PathList("META-INF", "services", _*) => MergeStrategy.filterDistinctLines
+      // https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
+      case PathList("META-INF", "services", _*)           => MergeStrategy.filterDistinctLines
       case PathList("META-INF", _*) | "module-info.class" => MergeStrategy.discard
-      case x => (assembly / assemblyMergeStrategy).value(x)
+      case x                                              => (assembly / assemblyMergeStrategy).value(x)
     },
     libraryDependencies ++= Seq(
       "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
-      "org.http4s" %% "http4s-ember-client" % versions.http4s,
-      "org.http4s" %% "http4s-ember-server" % versions.http4s,
-      "org.http4s" %% "http4s-dsl"          % versions.http4s,
-    )
+      "org.http4s"                   %% "http4s-ember-client"     % versions.http4s,
+      "org.http4s"                   %% "http4s-ember-server"     % versions.http4s,
+      "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
+    ),
   )
 
 lazy val webapp = project
@@ -131,29 +133,26 @@ lazy val webapp = project
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.outwatch"   %%% "outwatch"             % versions.outwatch,
-      "com.github.cornerman" %%% "colibri-router"       % versions.colibri,
-      "com.github.cornerman" %%% "colibri-reactive"     % versions.colibri,
+      "io.github.outwatch"   %%% "outwatch"         % versions.outwatch,
+      "com.github.cornerman" %%% "colibri-router"   % versions.colibri,
+      "com.github.cornerman" %%% "colibri-reactive" % versions.colibri,
     ),
     Compile / npmDependencies ++= Seq(
-      "snabbdom"               -> "github:outwatch/snabbdom.git#semver:0.7.5", // for outwatch, workaround for: https://github.com/ScalablyTyped/Converter/issues/293
+      "snabbdom" -> "github:outwatch/snabbdom.git#semver:0.7.5" // for outwatch, workaround for: https://github.com/ScalablyTyped/Converter/issues/293
     ),
     Compile / npmDevDependencies ++= Seq(
       "@fun-stack/fun-pack" -> "^0.3.5",
-      "autoprefixer" -> "^10.4.12",
-      "daisyui" -> "^3.0.3",
-      "postcss" -> "^8.4.16",
-      "postcss-loader" -> "^7.0.1",
-      "tailwindcss" -> "^3.1.8"
+      "autoprefixer"        -> "^10.4.12",
+      "daisyui"             -> "^3.0.3",
+      "postcss"             -> "^8.4.16",
+      "postcss-loader"      -> "^7.0.1",
+      "tailwindcss"         -> "^3.1.8",
     ),
 //    stIgnore ++= List(
 //      "snabbdom",
 //    ),
-    scalaJSUseMainModuleInitializer := true,
-    webpackDevServerPort := sys.env
-      .get("FRONTEND_PORT")
-      .flatMap(port => scala.util.Try(port.toInt).toOption)
-      .getOrElse(12345),
+    scalaJSUseMainModuleInitializer   := true,
+    webpackDevServerPort              := sys.env.get("FRONTEND_PORT").flatMap(port => scala.util.Try(port.toInt).toOption).getOrElse(12345),
     webpackDevServerExtraArgs         := Seq("--color"),
     fullOptJS / webpackEmitSourceMaps := true,
     fastOptJS / webpackEmitSourceMaps := true,

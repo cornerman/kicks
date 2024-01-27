@@ -63,7 +63,7 @@ object App {
     cls := "p-10 mb-auto",
     Page.current.map {
       case Page.Home => div("HOME")
-      case Page.Api => div("AHJA")
+      case Page.Api  => div("AHJA")
     },
   )
 

@@ -26,6 +26,5 @@ object Page {
     case Page.Home => Paths.Home
   }
 
-  val current: Subject[Page] = Router.path
-    .imapSubject[Page](Page.toPath)(Page.fromPath)
+  val current: Subject[Page] = Router.path.imapSubject[Page](Page.toPath)(Page.fromPath)
 }

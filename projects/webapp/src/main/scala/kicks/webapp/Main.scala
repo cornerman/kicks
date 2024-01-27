@@ -17,7 +17,7 @@ object Main extends IOApp.Simple {
     div(
       RpcClient.requestRpc.foo("wolf"),
       RpcClient.eventRpc.foo("peter"),
-      App.layout.provide(state)
+      App.layout.provide(state),
     )
   }
 

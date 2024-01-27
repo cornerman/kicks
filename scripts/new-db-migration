@@ -7,30 +7,47 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-migrations_path="./db/src/main/resources/migrations"
+migrations_path="./projects/db/src/main/resources/migrations"
 mkdir -p "${migrations_path}"
 
 num_migrations=$(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | wc -l)
 
 migration_path="${migrations_path}/V$(($num_migrations + 1))__$(echo "$@" | sed 's/[^a-zA-Z0-9._-]/_/g').sql"
-changelog_path="${migration_path}.yml"
+changelog_path="${migration_path}.new.yml"
 target_db_path="${migration_path}.target.db"
 reference_db_path="${migration_path}.reference.db"
 
-rm -f "$target_db_path" "$reference_db_path" "$changelog_path"
-
 echo "Set up reference database from schema"
-cat schema.sql | sqlite3 "$reference_db_path"
+rm -f "$reference_db_path"
+cat schema.sql | sqlite3 "${reference_db_path}"
 
 echo "Set up target database by running all migrations"
-cat <(echo "") $(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | sort) | sqlite3 "$target_db_path"
+rm -f "$target_db_path"
+cat <(echo "") $(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | sort) | sqlite3 "${target_db_path}"
 
 echo "Calculate diff and create changelog"
+rm -f "$changelog_path"
 liquibase diffChangeLog --url="jdbc:sqlite:${target_db_path}" --referenceUrl="jdbc:sqlite:${reference_db_path}" --changelogFile="${changelog_path}"
 
+# yq -e '.databaseChangeLog[].changeSet.runInTransaction = false' "${changelog_path}" > newfile
+# mv newfile ${changelog_path}
+
 echo "Generate sql migration from changelog"
-liquibase updateSQL --url="offline:sqlite" --outputFile="${migration_path}" --changelogFile="${changelog_path}"
-sed -i -e '/^--/d' -e '/./,$!d' "${migration_path}"
+# TODO: This does not work for a lot of operations with sqlite, because statements need a live db connection.
+# liquibase update-sql --url="offline:sqlite" --outputFile="${migration_path}" --changelogFile="${changelog_path}"
+# TODO: this does not work for a lot of operations with sqlite, because statements are volatile
+# https://github.com/liquibase/liquibase/issues/5515
+# liquibase update-sql --url="jdbc:sqlite:${target_db_path}" --outputFile="${migration_path}" --changelogFile="${changelog_path}"
+# docker run -w /app -v $PWD:/app liquibase/liquibase --log-level=SEVERE --sql-log-level=SEVERE --log-file=${migration_path} update --url="jdbc:sqlite:${target_db_path}" --changelogFile="${changelog_path}"
+# Workaround: instead we run an update on the target db and log the sql statement :/
+liquibase --log-level=SEVERE --sql-log-level=SEVERE --log-file=${migration_path} update --url="jdbc:sqlite:${target_db_path}" --changelogFile="${changelog_path}"
+# use local because: https://github.com/liquibase/liquibase/pull/5513
+export LIQUIBASE_HOME="/home/cornerman/projects/liquibase/liquibase-dist/target"
+# /home/cornerman/projects/liquibase/liquibase-dist/target/liquibase --log-level=SEVERE --sql-log-level=SEVERE --log-file="${migration_path}" update --url="jdbc:sqlite:${target_db_path}" --changelogFile="${changelog_path}"
+# /home/cornerman/projects/liquibase/liquibase-dist/target/liquibase --log-level=fine update --url="jdbc:sqlite:${target_db_path}" --changelogFile="${changelog_path}"
+sed -i 's/^\[[^]]*\][^[]*\[liquibase.executor\] //' "${migration_path}"
+sed -i ':a;N;$!ba;s/\n[0-9][0-9]* row(s) affected/;/g' "${migration_path}"
+sed -i -e 's/^INSERT INTO DATABASECHANGELOG.*//' -e '/^CREATE TABLE DATABASECHANGELOG/d' -e '/^DELETE FROM DATABASECHANGELOGLOCK/d' "${migration_path}"
 
 echo
 cat "$changelog_path"

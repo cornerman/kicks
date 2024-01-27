@@ -9,14 +9,14 @@ import kicks.rpc.{EventRpc, RequestRpc}
 import scala.concurrent.duration.DurationInt
 
 case class AppState(
-                     xa: Transactor[IO],
-                     requestApi: RequestRpc[IO],
-                     eventApi: EventRpc[Stream[IO, *]],
+  xa: Transactor[IO],
+  requestApi: RequestRpc[IO],
+  eventApi: EventRpc[Stream[IO, *]],
 )
 object AppState {
   def create(jdbcUrl: String): AppState = {
     AppState(
-      xa = Transactor.fromDriverManager[IO](classOf[org.sqlite.JDBC].getName, jdbcUrl, Some(LogHandler.jdkLogHandler)),
+      xa = Transactor.fromDriverManager[IO](classOf[org.sqlite.JDBC].getName, jdbcUrl, None /*, Some(LogHandler.jdkLogHandler)*/ ),
       requestApi = new RequestRpc[IO] {
         override def foo(s: String): IO[String] = IO("Hej " + s)
       },
