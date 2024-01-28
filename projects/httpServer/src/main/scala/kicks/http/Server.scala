@@ -3,7 +3,6 @@ package kicks.http
 import cats.effect.IO
 import cats.implicits.*
 import com.comcast.ip4s.*
-import cps.reify
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
 
