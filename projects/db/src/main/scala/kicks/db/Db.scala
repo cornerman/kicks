@@ -49,11 +49,11 @@ object Db {
     }
   }
 
-  implicit val PersonWithId: WithId[Int, Person] = new WithId[Int, Person] {
-    override def getId(entity: Person): Int                   = entity.id
-    override def setId(entity: Person, entityId: Int): Person = entity.copy(id = entityId)
-  }
-  val repo = new DbEntityRepository[Int, Person](PersonDao.query)
+//  implicit val PersonWithId: WithId[Int, Person] = new WithId[Int, Person] {
+//    override def getId(entity: Person): Int                   = entity.id
+//    override def setId(entity: Person, entityId: Int): Person = entity.copy(id = entityId)
+//  }
+//  val repo = new DbEntityRepository[Int, Person](PersonDao.query)
 
 //  repo.update(Person(-1, "heinz", None, 5))
 //  repo.insert(lift(Person(-1, "heinz", None, 5)))

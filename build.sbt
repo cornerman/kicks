@@ -1,13 +1,11 @@
+import org.scalajs.jsenv.nodejs.NodeJSEnv
+import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.linker.interface.ModuleSplitStyle
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.1"
-
-Global / excludeLintKeys += webpackDevServerPort // TODO:
-
-ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
 
 val versions = new {
   val outwatch      = "1.0.0+4-ea3b233c-SNAPSHOT"
@@ -18,6 +16,8 @@ val versions = new {
   val quill         = "4.8.1"
   val dottyCpsAsync = "0.9.19"
 }
+
+ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
 
 // Uncomment, if you want to use snapshot dependencies from sonatype or jitpack
 ThisBuild / resolvers ++= Seq(
@@ -125,9 +125,10 @@ lazy val webapp = project
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.outwatch"   %%% "outwatch"         % versions.outwatch,
-      "com.github.cornerman" %%% "colibri-router"   % versions.colibri,
-      "com.github.cornerman" %%% "colibri-reactive" % versions.colibri,
+      "io.github.outwatch"     %%% "outwatch"         % versions.outwatch,
+      "com.github.cornerman"   %%% "colibri-router"   % versions.colibri,
+      "com.github.cornerman"   %%% "colibri-reactive" % versions.colibri,
+      "org.scalatest"          %%% "scalatest"        % "3.2.17" % Test,
     ),
 
     // https://www.scala-js.org/doc/tutorial/scalajs-vite.html
@@ -139,6 +140,8 @@ lazy val webapp = project
     // scalablytyped
     externalNpm := baseDirectory.value,
     stIgnore ++= List(
-      "snabbdom",
+      "snabbdom"
     ),
   )
+
+addCommandAlias("dev", "webapp/fastLinkJS; httpServer/reStart")

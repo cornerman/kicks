@@ -9,12 +9,6 @@ addSbtPlugin("com.disneystreaming.smithy4s" % "smithy4s-sbt-codegen" % "0.18.5")
 addSbtPlugin("com.github.cornerman"         % "sbt-quillcodegen"     % "0.1.5")
 
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.0.0")
-addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.12.0")
+addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.15.0")
 
-//TODO: new release after https://github.com/ScalablyTyped/Converter/issues/583
-addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta43+13-92885d6d-SNAPSHOT")
-
-ThisBuild / resolvers ++= Seq(
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots",
-)
+addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta44")

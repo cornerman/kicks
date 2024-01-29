@@ -6,10 +6,11 @@ import chameleon.{Deserializer, Serializer}
 import fs2.Stream
 import kicks.api.KicksServiceGen
 import org.http4s.dsl.Http4sDsl
+import org.http4s.server.staticcontent.{fileService, FileService, MemoryCache}
 import org.http4s.{HttpRoutes, Response, ServerSentEvent}
 import sloth.{RequestPath, Router, ServerFailure}
 import smithy4s.Transformation
-import smithy4s.http4s.{SimpleRestJsonBuilder, swagger}
+import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
 
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
@@ -55,9 +56,16 @@ object ServerRoutes {
     val serviceImpl        = new KicksServiceImpl(state)
     val serviceImplUnified = serviceImpl.transform(AppTypes.serviceResultTransform)(Transformation.service_absorbError_transformation)
 
+    val staticFiles = fileService[IO](
+      FileService.Config(
+        systemPath = "/home/cornerman/projects/kicks/projects/webapp/dist",
+        cacheStrategy = MemoryCache[IO](),
+      )
+    )
+
     for {
       kicksRoutes    <- SimpleRestJsonBuilder.routes(serviceImplUnified).make
       kicksDocsRoutes = swagger.docs[IO](KicksServiceGen)
-    } yield kicksRoutes <+> kicksDocsRoutes <+> customRoutes(state)
+    } yield staticFiles <+> kicksRoutes <+> kicksDocsRoutes <+> customRoutes(state)
   }
 }

@@ -4,7 +4,6 @@ module.exports = {
     require('daisyui'),
   ],
   daisyui: {
-    logs: false, // otherwise daisy logs its ui version
     themes: [
       'light',
       'dark'
