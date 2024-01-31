@@ -1,6 +1,6 @@
 package kicks.webapp
 
-import colibri.Observable
+import colibri.{Observable, Observer, Subject}
 import kicks.webapp.state.{AppCommand, AppState, SubState}
 import outwatch.*
 import outwatch.dsl.*
@@ -17,7 +17,6 @@ object App {
 
   def layout: VNodeM[AppState] =
     div(
-      "foo",
       mySub.provideSomeF[Observable, AppState](_.subcomponent.observable),
       cls := "flex flex-col h-screen",
       pageHeader,

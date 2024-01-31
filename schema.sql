@@ -3,13 +3,14 @@
 --
 -- Info:
 -- - PRIMARY KEY needs NOT NULL, otherwise liquibase will oscillate between create/drop not-null-constraint.
+-- - CREATE TABLE misses foreign keys
 
 CREATE TABLE foo(wolf text);
 
 -- Create Address table
 CREATE TABLE Address (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    street TEXT,
+    street TEXT NOT NULL,
     street_number TEXT
 );
 
@@ -20,9 +21,9 @@ CREATE TABLE Person (
     name TEXT NOT NULL,
     age Integer,
     address_id INTEGER,
-    bar text NOT NULL,
-    blub INTEGER NOT NULL,
-    FOREIGN KEY (address_id) REFERENCES Address(id)
+    --bar text,
+    --blub INTEGER NOT NULL,
+    --FOREIGN KEY (address_id) REFERENCES Address(id)
 );
 
 --CREATE INDEX idx_posts_user_id ON Address (id);
@@ -33,3 +34,14 @@ CREATE TABLE Person (
 --BEGIN
 --    insert into foo values('person');
 --END;
+
+--create table user(
+--    id INTEGER PRIMARY KEY NOT NULL,
+--    name TEXT NOT NULL
+--);
+--
+--create table user_password(
+--    user_id INTEGER PRIMARY KEY NOT NULL,
+--    hashed_password TEXT NOT NULL,
+--    FOREIGN KEY (user_id) REFERENCES user(id)
+--);

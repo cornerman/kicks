@@ -2,6 +2,7 @@ package kicks.webapp
 
 import cats.effect.IO
 import chameleon.{Deserializer, Serializer}
+import colibri.jsdom.EventSourceObservable
 import colibri.{Cancelable, Observable}
 import kicks.rpc.{EventRpc, RequestRpc}
 import org.scalajs.dom
@@ -35,17 +36,9 @@ private object RequestRpcTransport extends RequestTransport[String, IO] {
 }
 
 private object EventRpcTransport extends RequestTransport[String, Observable] {
-  override def apply(request: Request[String]): Observable[String] = Observable.create[String] { observer =>
+  override def apply(request: Request[String]): Observable[String] = {
     val pathPart = URIUtils.encodeURIComponent(request.payload)
-    val source   = new dom.EventSource(s"http://localhost:8080/${request.path.apiName}/${request.path.methodName}?payload=${pathPart}")
-
-    source.onerror = { ev =>
-      observer.unsafeOnError(new Exception(s"Failed EventSource (${ev.filename}:${ev.lineno}:${ev.colno}): ${ev.message}"))
-    }
-    source.onmessage = { ev =>
-      observer.unsafeOnNext(ev.data.toString)
-    }
-
-    Cancelable(source.close)
+    val url      = s"http://localhost:8080/${request.path.apiName}/${request.path.methodName}?payload=${pathPart}"
+    EventSourceObservable(url).map(_.data.toString)
   }
 }

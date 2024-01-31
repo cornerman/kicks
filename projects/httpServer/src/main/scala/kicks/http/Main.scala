@@ -3,24 +3,27 @@ package kicks.http
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits.*
 import kicks.db.DbMigrations
-import org.http4s.ember.client.EmberClientBuilder
 
 object Main extends IOApp {
+  private enum Mode {
+    case Run, Migrate, Repair
+  }
+
   override def run(args: List[String]): IO[ExitCode] = {
-    val runMode = args.headOption
-    val jdbcUrl = System.getenv("DATABASE_URL")
+    val modes = args.map(Mode.valueOf).toSet
 
-    val state = AppState.create(jdbcUrl = jdbcUrl)
+    val state = AppState.create(AppStateConfig.fromEnv())
 
-    val runMigrations = DbMigrations.run(jdbcUrl = jdbcUrl)
-    val startServer   = Server.start(state)
+    val shouldRun     = modes.isEmpty || modes(Mode.Run)
+    val shouldMigrate = modes.isEmpty || modes(Mode.Migrate)
+    val shouldRepair  = modes(Mode.Repair)
 
-    val program = runMode match {
-      case Some("run")                    => startServer
-      case Some("migrate")                => runMigrations
-      case Some("migrate-and-run") | None => runMigrations *> startServer
-      case Some(mode)                     => IO.raiseError(new Exception(s"Unknown mode: $mode. Expected: run, migrate, migrate-and-run."))
-    }
+    val runMigrations = DbMigrations.run(jdbcUrl = state.config.jdbcUrl, repair = shouldRepair)
+    val startServer   = Server.start(state).useForever
+
+    val program =
+      runMigrations.whenA(shouldMigrate) *>
+        startServer.whenA(shouldRun)
 
     program.as(ExitCode.Success)
   }

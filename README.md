@@ -28,3 +28,8 @@ An exception from the generation: smithy4s does not properly generate code for s
 That is why, we manually define our `subscribe` streaming endpoint for ServerSentEvents - it is also not shown in the generated docs.
 
 Our http server in scala is `http4s` (see `./projects/httpServer/src/main/scala/kicks/http/Server.scala` and `./projects/httpServer/src/main/scala/kicks/http/ServerRoutes.scala`)
+
+
+## Gotchas
+
+- sqlite has disabled foreign keys by default (backwards compatability ftw). So be sure to always use `jdbc:sqlite:filename?foreign_keys=ON` in your jdbc connection strings. Or alternatively set `#PRAGMA foreign_keys = ON` in each sqlite connection.

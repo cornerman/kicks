@@ -18,8 +18,7 @@ lease:
 #     - "*.png"
 
 exec:
-  - cmd: "java -jar httpServer.jar migrate-and-run"
+  - cmd: "java -jar httpServer.jar Migrate Run"
     if-candidate: true
-  - cmd: "java -jar httpServer.jar run"
+  - cmd: "java -jar httpServer.jar Run"
     if-candidate: false
-  - cmd: ln -s /litefs/kicks.db /app/ && litestream replicate

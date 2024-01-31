@@ -2,12 +2,8 @@
 
 FROM amazoncorretto:21-alpine
 
-ENV LITESTREAM_VERSION="0.3.5"
 ARG LITEFS_CONFIG=configs/litefs.yml
-ARG LITESTREAM_CONFIG=configs/litestream.yml
-
-ENV FLYWAY_VERSION 10.6.0
-ENV FLYWAY_HOME /flyway
+ENV FRONTEND_DISTRIBUTION_PATH=./dist
 
 LABEL fly_launch_runtime="Java"
 
@@ -22,8 +18,11 @@ RUN litefs version
 WORKDIR /app
 
 COPY $LITEFS_CONFIG litefs.yml
-
+COPY projects/httpServer/target/universal/stage/bin bin
+COPY projects/httpServer/target/universal/stage/lib/kicks* bin/
+COPY projects/httpServer/target/universal/stage/lib/kicks* bin/
 COPY projects/httpServer/target/scala-3.*/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
+COPY projects/webapp/dist $FRONTEND_DISTRIBUTION_PATH
 
 # Actual entrypoint/command inside litefs.yml
 ENTRYPOINT litefs mount

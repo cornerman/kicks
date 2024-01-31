@@ -12,7 +12,7 @@ const scalaVersion = fs.readFileSync('../../build.sbt', 'utf8').match(/\bscalaVe
 export default defineConfig({
   // plugins: [
   //   scalaJSPlugin({
-  //     cwd: '../../../',
+  //     cwd: '../../',
   //     projectID: 'webapp',
   //     uriPrefix: 'scalajs',
   //   }),

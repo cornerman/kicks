@@ -21,7 +21,7 @@ services:
     environment:
       IS_PRIMARY: "true"
       ADVERTISE_URL: "http://litefs-primary:20202"
-      DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db"
+      DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
 
   litefs-replica1:
     build:
@@ -37,9 +37,8 @@ services:
     environment:
       IS_PRIMARY: "false"
       ADVERTISE_URL: "http://litefs-primary:20202"
-      DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db"
+      DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
 
 volumes:
   litefs-storage-primary:
   litefs-storage-replica1:
-  litefs-storage-host:

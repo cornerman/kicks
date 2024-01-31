@@ -1,0 +1,27 @@
+databaseChangeLog:
+- changeSet:
+    id: 1706668126400-1
+    author: cornerman (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            name: num
+            type: INTEGER
+        - column:
+            name: a
+            type: TEXT
+        tableName: Bar
+- changeSet:
+    id: 1706668126400-2
+    author: cornerman (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              primaryKey: true
+            name: a
+            type: TEXT
+        tableName: Foo
+

@@ -5,25 +5,25 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version      := "0.1.0-SNAPSHOT"
+ThisBuild / organization := "kicks"
 ThisBuild / scalaVersion := "3.3.1"
 
 val versions = new {
   val outwatch      = "1.0.0+4-ea3b233c-SNAPSHOT"
-  val colibri       = "0.8.2"
+  val colibri       = "0.8.3"
   val scribe        = "3.13.0"
   val http4s        = "0.23.24"
   val smithy4s      = "0.18.5"
   val quill         = "4.8.1"
   val dottyCpsAsync = "0.9.19"
+  val sttpOAuth2    = "0.17.0"
+  val pac4j         = "5.7.2"
 }
 
 ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
 
-// Uncomment, if you want to use snapshot dependencies from sonatype or jitpack
-ThisBuild / resolvers ++= Seq(
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-  "Sonatype OSS Snapshots S01" at "https://s01.oss.sonatype.org/content/repositories/snapshots", // https://central.sonatype.org/news/20210223_new-users-on-s01/
-)
+// Uncomment, if you want to use snapshot dependencies from sonatype
+ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
 
@@ -75,9 +75,9 @@ lazy val db = project
   .settings(commonSettings)
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
+    quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db?foreign_keys=ON",
     quillcodegenSetupTask := {
-      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:").takeWhile(_ != '?')
       val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
       require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
     },
@@ -87,22 +87,20 @@ lazy val db = project
 //    },
 
     libraryDependencies ++= Seq(
-      "org.xerial"            % "sqlite-jdbc"  % "3.44.1.0",
-      "io.getquill"          %% "quill-doobie" % versions.quill,
-      "org.tpolecat"         %% "doobie-core"  % "1.0.0-RC5",
-      "org.flywaydb"          % "flyway-core"  % "10.6.0",
-      "com.github.jsqlparser" % "jsqlparser"   % "4.8",
+      "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
+      "io.getquill"  %% "quill-doobie" % versions.quill,
+      "org.tpolecat" %% "doobie-core"  % "1.0.0-RC5",
+      "org.flywaydb"  % "flyway-core"  % "10.6.0",
     ),
   )
 
 lazy val httpServer = project
   .in(file("projects/httpServer"))
+  .enablePlugins(GraalVMNativeImagePlugin)
   .dependsOn(api, rpc.jvm, db)
   .settings(commonSettings)
   .settings(
-    reStart / javaOptions       := Seq("-Djava.library.path=/home/cornerman/projects/kicks/projects/db/lib-system"),
-    Compile / run / fork        := true,
-    Compile / run / javaOptions := (reStart / javaOptions).value,
+    Compile / run / fork := true,
     assembly / assemblyMergeStrategy := {
       // https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
       case PathList("META-INF", "services", _*)           => MergeStrategy.filterDistinctLines
@@ -112,9 +110,15 @@ lazy val httpServer = project
     libraryDependencies ++= Seq(
       "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
-      "org.http4s"                   %% "http4s-ember-client"     % versions.http4s,
       "org.http4s"                   %% "http4s-ember-server"     % versions.http4s,
       "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
+      "com.outr"                     %% "scalapass"               % "1.2.8",
+      "org.pac4j"                     % "pac4j-core"              % versions.pac4j,
+      "org.pac4j"                     % "pac4j-cas"               % versions.pac4j,
+      "org.pac4j"                     % "pac4j-http"              % versions.pac4j,
+      "org.pac4j"                     % "pac4j-jwt"               % versions.pac4j,
+      "org.pac4j"                     % "pac4j-oauth"             % versions.pac4j,
+      "org.pac4j"                    %% "http4s-pac4j"            % "4.2.0",
     ),
   )
 
@@ -125,10 +129,10 @@ lazy val webapp = project
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.outwatch"     %%% "outwatch"         % versions.outwatch,
-      "com.github.cornerman"   %%% "colibri-router"   % versions.colibri,
-      "com.github.cornerman"   %%% "colibri-reactive" % versions.colibri,
-      "org.scalatest"          %%% "scalatest"        % "3.2.17" % Test,
+      "io.github.outwatch"   %%% "outwatch"         % versions.outwatch,
+      "com.github.cornerman" %%% "colibri-router"   % versions.colibri,
+      "com.github.cornerman" %%% "colibri-reactive" % versions.colibri,
+      "org.scalatest"        %%% "scalatest"        % "3.2.17" % Test,
     ),
 
     // https://www.scala-js.org/doc/tutorial/scalajs-vite.html
