@@ -18,6 +18,7 @@ val versions = new {
   val dottyCpsAsync = "0.9.19"
   val sttpOAuth2    = "0.17.0"
   val pac4j         = "5.7.2"
+  val jsoniter      = "2.28.0"
 }
 
 ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
@@ -75,17 +76,16 @@ lazy val db = project
   .settings(commonSettings)
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db?foreign_keys=ON",
-    quillcodegenSetupTask := {
-      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:").takeWhile(_ != '?')
-      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
-      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
+    quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
+    // quillcodegenSetupTask := {
+    //  val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+    //  val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
+    //  require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
+    // },
+    quillcodegenSetupTask := Def.taskDyn {
+      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+      executeSqlFile(file("./schema.sql"))
     },
-//    quillcodegenSetupTask := Def.taskDyn {
-//      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-//      executeSqlFile(file("./schema.sql"))
-//    },
-
     libraryDependencies ++= Seq(
       "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
       "io.getquill"  %% "quill-doobie" % versions.quill,
@@ -108,17 +108,21 @@ lazy val httpServer = project
       case x                                              => MergeStrategy.last
     },
     libraryDependencies ++= Seq(
-      "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
-      "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
-      "org.http4s"                   %% "http4s-ember-server"     % versions.http4s,
-      "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
-      "com.outr"                     %% "scalapass"               % "1.2.8",
-      "org.pac4j"                     % "pac4j-core"              % versions.pac4j,
-      "org.pac4j"                     % "pac4j-cas"               % versions.pac4j,
-      "org.pac4j"                     % "pac4j-http"              % versions.pac4j,
-      "org.pac4j"                     % "pac4j-jwt"               % versions.pac4j,
-      "org.pac4j"                     % "pac4j-oauth"             % versions.pac4j,
-      "org.pac4j"                    %% "http4s-pac4j"            % "4.2.0",
+      "com.outr"                              %% "scribe-slf4j2"           % versions.scribe,
+      "com.disneystreaming.smithy4s"          %% "smithy4s-http4s-swagger" % versions.smithy4s,
+      "org.http4s"                            %% "http4s-ember-server"     % versions.http4s,
+      "org.http4s"                            %% "http4s-dsl"              % versions.http4s,
+      "com.outr"                              %% "scalapass"               % "1.2.8",
+      "org.pac4j"                              % "pac4j-core"              % versions.pac4j,
+      "org.pac4j"                              % "pac4j-cas"               % versions.pac4j,
+      "org.pac4j"                              % "pac4j-http"              % versions.pac4j,
+      "org.pac4j"                              % "pac4j-jwt"               % versions.pac4j,
+      "org.pac4j"                              % "pac4j-oauth"             % versions.pac4j,
+      "org.pac4j"                             %% "http4s-pac4j"            % "4.3.0-SNAPSHOT",
+      "com.auth0"                              % "java-jwt"                % "4.4.0",
+      "com.auth0"                              % "jwks-rsa"                % "0.22.1",
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"     % versions.jsoniter,
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros"   % versions.jsoniter % "compile-internal",
     ),
   )
 

@@ -1,21 +1,23 @@
 package kicks.http
 
-import kicks.http.auth.Pac4jConfig
+import kicks.http.auth.{AuthUser, Pac4jConfig}
 import kicks.api.KicksServiceGen
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{IO, Resource}
 import cats.effect.std.Dispatcher
-import cats.implicits.*
+import cats.implicits.{*, given}
 import org.http4s.implicits.given
 import fs2.Stream
+import kicks.http
+import kicks.http.authn.{AuthnClient, AuthnClientConfig}
 import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.{`Content-Type`, Location}
+import org.http4s.headers.{Location, `Content-Type`}
 import org.http4s.server.{AuthMiddleware, HttpMiddleware, Router}
-import org.http4s.server.staticcontent.{fileService, FileService, MemoryCache}
+import org.http4s.server.staticcontent.{FileService, MemoryCache, fileService}
 import org.http4s.{AuthedRoutes, ContextRequest, HttpRoutes, Request, Response, ServerSentEvent}
 import org.pac4j.core.profile.CommonProfile
 import smithy4s.{Transformation, UnsupportedProtocolError}
-import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
+import smithy4s.http4s.{SimpleRestJsonBuilder, swagger}
 import org.http4s.*
 import org.http4s.syntax.all.*
 
@@ -24,6 +26,22 @@ import scala.tools.scalap.scalax.rules.scalasig.ClassFileParser.method
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
   import dsl.*
+  
+  val authnClient = new AuthnClient(AuthnClientConfig(
+    issuer = "foo",
+    audiences = Set("a"),
+    username = "ich",
+    password = "du",
+  ), null)
+  
+  private val getAuthOptionalUser: Kleisli[OptionT[IO, *], Request[IO], AuthUser] =
+    Kleisli(_ => OptionT.liftF(IO(AuthUser.Anon)))
+  private val getAuthRequiredUser: Kleisli[OptionT[IO, *], Request[IO], AuthUser.User] =
+    getAuthOptionalUser.collect { case user: AuthUser.User => user }
+
+  private val middlewareOptionalUser: AuthMiddleware[IO, AuthUser] = AuthMiddleware(getAuthOptionalUser)
+
+  private val middlewareRequiredUser: AuthMiddleware[IO, AuthUser.User] = AuthMiddleware(getAuthRequiredUser)
 
   private def rpcRoutes(state: AppState): HttpRoutes[IO] = {
     import chameleon.{Deserializer, Serializer}

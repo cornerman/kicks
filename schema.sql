@@ -10,17 +10,17 @@ CREATE TABLE foo(wolf text);
 -- Create Address table
 CREATE TABLE Address (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    street TEXT NOT NULL,
     street_number TEXT
 );
 
 -- Create Person table
 CREATE TABLE Person (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    hello text,
     foo TEXT,
     name TEXT NOT NULL,
-    age Integer,
-    address_id INTEGER,
+    age Integer
+    --address_id INTEGER,
     --bar text,
     --blub INTEGER NOT NULL,
     --FOREIGN KEY (address_id) REFERENCES Address(id)

@@ -2,6 +2,6 @@ package kicks.http.auth
 
 enum AuthUser {
   case Anon
-  case User(name: String)
+  case User(id: String)
 
 }

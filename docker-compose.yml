@@ -39,6 +39,24 @@ services:
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
 
+  authelia:
+    image: authelia/authelia
+    container_name: authelia
+    volumes:
+      - ./authelia:/config
+    networks:
+      - net
+    ports:
+      - "9091:9091"
+    expose:
+      - 9091
+    restart: unless-stopped
+    healthcheck:
+      ## In production the healthcheck section should be commented.
+      disable: true
+    environment:
+      - TZ=Europe/Paris
+
 volumes:
   litefs-storage-primary:
   litefs-storage-replica1:
