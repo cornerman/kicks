@@ -9,15 +9,16 @@ ThisBuild / organization := "kicks"
 ThisBuild / scalaVersion := "3.3.1"
 
 val versions = new {
-  val outwatch      = "1.0.0+4-ea3b233c-SNAPSHOT"
-  val colibri       = "0.8.3"
   val scribe        = "3.13.0"
-  val http4s        = "0.23.24"
-  val smithy4s      = "0.18.5"
-  val quill         = "4.8.1"
   val dottyCpsAsync = "0.9.19"
-  val sttpOAuth2    = "0.17.0"
+  val smithy4s      = "0.18.5"
   val jsoniter      = "2.28.0"
+  val quill         = "4.8.1"
+  val http4s        = "0.23.24"
+  val http4sJsoniter = "0.1.1"
+  val authn         = "0.0.0+9-69b3e4a8-SNAPSHOT"
+  val outwatch      = "1.0.0+4-ea3b233c-SNAPSHOT"
+  val colibri       = "0.8.4"
 }
 
 ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
@@ -36,10 +37,10 @@ lazy val commonSettings = Seq(
     "-Wconf:msg=Questionable row-class found:s"
   ),
   libraryDependencies ++= Seq(
-    "com.github.rssh"  %% "dotty-cps-async"               % versions.dottyCpsAsync,
+    "com.github.rssh" %%% "dotty-cps-async"               % versions.dottyCpsAsync,
     "com.github.rssh" %%% "cps-async-connect-cats-effect" % versions.dottyCpsAsync,
     "com.github.rssh" %%% "cps-async-connect-fs2"         % versions.dottyCpsAsync,
-    "com.outr"         %% "scribe"                        % versions.scribe,
+    "com.outr"        %%% "scribe"                        % versions.scribe,
   ),
 )
 
@@ -112,8 +113,8 @@ lazy val httpServer = project
       "org.http4s"                            %% "http4s-ember-client"     % versions.http4s,
       "org.http4s"                            %% "http4s-ember-server"     % versions.http4s,
       "org.http4s"                            %% "http4s-dsl"              % versions.http4s,
-      "com.github.cornerman"                  %% "http4s-jsoniter"         % "0.1.1",
-      "com.github.cornerman"                  %% "keratin-authn-backend"   % "0.0.0+5-129e5a16-SNAPSHOT",
+      "com.github.cornerman"                  %% "http4s-jsoniter"         % versions.http4sJsoniter,
+      "com.github.cornerman"                  %% "keratin-authn-backend"   % versions.authn,
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"     % versions.jsoniter,
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros"   % versions.jsoniter % "compile-internal",
     ),
@@ -126,10 +127,11 @@ lazy val webapp = project
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "io.github.outwatch"   %%% "outwatch"         % versions.outwatch,
-      "com.github.cornerman" %%% "colibri-router"   % versions.colibri,
-      "com.github.cornerman" %%% "colibri-reactive" % versions.colibri,
-      "org.scalatest"        %%% "scalatest"        % "3.2.17" % Test,
+      "io.github.outwatch"   %%% "outwatch"               % versions.outwatch,
+      "com.github.cornerman" %%% "colibri-router"         % versions.colibri,
+      "com.github.cornerman" %%% "colibri-reactive"       % versions.colibri,
+      "com.github.cornerman" %%% "keratin-authn-frontend" % versions.authn,
+      "org.scalatest"        %%% "scalatest"              % "3.2.17" % Test,
     ),
 
     // https://www.scala-js.org/doc/tutorial/scalajs-vite.html
@@ -141,7 +143,8 @@ lazy val webapp = project
     // scalablytyped
     externalNpm := baseDirectory.value,
     stIgnore ++= List(
-      "snabbdom"
+      "snabbdom",     // facade by outwatch
+      "keratin-authn",// facade by keratin-authn-frontend
     ),
   )
 

@@ -6,52 +6,43 @@ import cps.syntax.unary_!
 import cats.effect.{Async, IO, IOApp}
 import kicks.webapp.state.AppState
 import outwatch.{Outwatch, VNode}
-import typings.keratinAuthn.mod as authn
-import typings.keratinAuthn.distTypesMod.*
+import authn.frontend.*
+import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 
 object Main extends IOApp.Simple {
 
-  private val app: VNode = {
+  private def app(state: AppState): VNode = {
     import outwatch.dsl.*
 
-    val state = AppState()
     div(
       RpcClient.requestRpc.foo("wolf"),
       RpcClient.eventRpc.foo("peter"),
       App.layout.provide(state),
       button(
         "Register",
-        onClick.doAction {
-          authn.signup(Credentials(username = "est", password = "wolfgang254!!??"))
+        onClick.doEffect {
+          state.authn.signup(Credentials(username = "est", password = "wolfgang254!!??"))
         },
       ),
       button(
         "Login",
-        onClick.doAction {
-          authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
+        onClick.doEffect {
+          state.authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
         },
       ),
       button(
         "Logout",
-        onClick.doAction {
-          authn.logout()
+        onClick.doEffect {
+          state.authn.logout
         },
       ),
     )
   }
 
-  private val setupAuthn: IO[Unit] = IO
-    .fromThenable(IO {
-      authn.setHost("http://localhost:3000")
-      authn.setLocalStorageStore("kickssession")
-
-      authn.restoreSession()
-    })
-    .attempt
-    .map(println(_))
-
   override def run = async[IO] {
-    !setupAuthn
-    !Outwatch.renderReplace[IO]("#app", app)
+    val state = AppState()
+
+    !state.authn.restoreSession.voidError
+    !Outwatch.renderReplace[IO]("#app", app(state))
   }
 }
