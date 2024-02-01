@@ -19,20 +19,9 @@ object RpcClient {
 
 private object RequestRpcTransport extends RequestTransport[String, IO] {
   override def apply(request: Request[String]): IO[String] = {
-    val url = s"http://localhost:8080/${request.path.apiName}/${request.path.methodName}"
-    IO.fromThenable(
-      IO(
-        dom
-          .fetch(
-            url,
-            new dom.RequestInit {
-              method = dom.HttpMethod.POST // TODO GET? But how to encode payload? get needed for litefs routing to replica
-              body = request.payload
-            },
-          )
-          .`then`[String](_.text())
-      )
-    )
+    val url         = s"http://localhost:8080/${request.path.apiName}/${request.path.methodName}"
+    val requestArgs = new dom.RequestInit { method = dom.HttpMethod.POST; body = request.payload }
+    IO.fromThenable(IO(dom.fetch(url, requestArgs).`then`[String](_.text())))
   }
 }
 

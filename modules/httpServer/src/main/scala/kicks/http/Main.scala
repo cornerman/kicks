@@ -2,6 +2,7 @@ package kicks.http
 
 import cps.*
 import cps.monads.catsEffect.{*, given}
+import cps.monads.given
 import cps.syntax.unary_!
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits.*
@@ -9,9 +10,10 @@ import kicks.db.DbMigrations
 import org.http4s.ember.client.EmberClientBuilder
 
 object Main extends IOApp {
-  enum Mode {
-    case Run, Migrate, Repair
-  }
+  enum Mode { case Run, Migrate, Repair }
+
+  val x = List(1,2)
+  val y = List(1,2)
 
   override def run(args: List[String]): IO[ExitCode] = asyncScope[IO] {
     val modes = args.map(Mode.valueOf).toSet
