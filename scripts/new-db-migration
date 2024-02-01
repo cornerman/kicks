@@ -7,7 +7,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-migrations_path="./projects/db/src/main/resources/migrations"
+migrations_path="./modules/db/src/main/resources/migrations"
 mkdir -p "${migrations_path}"
 
 num_migrations=$(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | wc -l)
