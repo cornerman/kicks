@@ -57,7 +57,8 @@ services:
     environment:
       APP_DOMAINS: "localhost"
       AUTHN_URL: "http://localhost:3000"
-      PUBLIC_PORT: 3001
+      PORT: 3001
+      PUBLIC_PORT: 3000
       SECRET_KEY_BASE: "test"
       DATABASE_URL: "sqlite3://localhost//data/authn.db"
     command: |

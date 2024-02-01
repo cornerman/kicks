@@ -1,6 +1,6 @@
 package kicks.rpc
 
-trait RequestRpc[F[_]] {
+trait Rpc[F[_]] {
   def foo(s: String): F[String]
 }
 

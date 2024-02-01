@@ -4,7 +4,7 @@ import cats.effect.IO
 import chameleon.{Deserializer, Serializer}
 import colibri.jsdom.EventSourceObservable
 import colibri.{Cancelable, Observable}
-import kicks.rpc.{EventRpc, RequestRpc}
+import kicks.rpc.{EventRpc, Rpc}
 import org.scalajs.dom
 import sloth.{Client, Request, RequestTransport}
 
@@ -13,7 +13,7 @@ import scala.scalajs.js.URIUtils
 object RpcClient {
   implicit val serializer: Serializer[String, String]     = x => x
   implicit val deserializer: Deserializer[String, String] = x => Right(x)
-  val requestRpc                                          = Client[String, IO](RequestRpcTransport).wire[RequestRpc[IO]]
+  val requestRpc                                          = Client[String, IO](RequestRpcTransport).wire[Rpc[IO]]
   val eventRpc                                            = Client[String, Observable](EventRpcTransport).wire[EventRpc[Observable]]
 }
 

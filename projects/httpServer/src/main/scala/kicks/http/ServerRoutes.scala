@@ -1,5 +1,8 @@
 package kicks.http
 
+import cps.*
+import cps.syntax.unary_!
+import cps.monads.catsEffect.given
 import kicks.http.auth.{AuthUser, Pac4jConfig}
 import kicks.api.KicksServiceGen
 import cats.data.{Kleisli, OptionT}
@@ -23,10 +26,19 @@ import org.http4s.syntax.all.*
 
 import scala.tools.scalap.scalax.rules.scalasig.ClassFileParser.method
 
+def fileRoutes(state: AppState) = {
+  fileService[IO](
+    FileService.Config(
+      systemPath = state.config.frontendDistributionPath,
+      cacheStrategy = MemoryCache[IO](),
+    )
+  )
+}
+
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
   import dsl.*
-  
+
   private val getAuthOptionalUser: Kleisli[OptionT[IO, *], Request[IO], AuthUser] =
     Kleisli(_ => OptionT.liftF(IO(AuthUser.Anon)))
   private val getAuthRequiredUser: Kleisli[OptionT[IO, *], Request[IO], AuthUser.User] =
@@ -42,8 +54,8 @@ object ServerRoutes {
     implicit val serializer: Serializer[String, String]     = x => x
     implicit val deserializer: Deserializer[String, String] = x => Right(x)
 
-    val requestRouter = Router[String, IO].route(state.requestApi)
-    val eventRouter   = Router[String, Stream[IO, *]].route(state.eventApi)
+    val requestRouter = Router[String, IO].route(state.rpc)
+    val eventRouter   = Router[String, Stream[IO, *]].route(state.eventRpc)
 
     def serverFailureToResponse[F[_]]: ServerFailure => IO[Response[IO]] = {
       case ServerFailure.PathNotFound(_)        => NotFound()
@@ -74,7 +86,7 @@ object ServerRoutes {
     }
   }
 
-  private def authManagementRoutes(dispatcher: Dispatcher[IO]): (HttpMiddleware[IO], HttpRoutes[IO]) = {
+  private def authManagementRoutes(dispatcher: Dispatcher[IO]): HttpRoutes[IO] = {
     import org.pac4j.http4s._
 
     val contextBuilder = Http4sWebContext.withDispatcherInstance(dispatcher)
@@ -118,28 +130,20 @@ object ServerRoutes {
 
     }
 
-    Session.sessionManagement[IO](sessionConfig) -> (interactionRoutes <+> loginRoutes <+> Session
+    interactionRoutes <+> loginRoutes <+> Session
       .sessionManagement[IO](sessionConfig)
       .compose(SecurityFilterMiddleware.securityFilter[IO](clientConfig, contextBuilder))
-      .apply(authedRoutes))
+      .apply(authedRoutes)
   }
 
-  def all(state: AppState): Resource[IO, HttpRoutes[IO]] = {
-    val serviceImpl        = new KicksServiceImpl(state)
-    val serviceImplUnified = serviceImpl.transform(AppTypes.serviceResultTransform)(Transformation.service_absorbError_transformation)
+  def all(state: AppState): Resource[IO, HttpRoutes[IO]] = async[Resource[IO, *]] {
+    val serviceImplUnified = state.api.transform(AppTypes.serviceResultTransform)(Transformation.service_absorbError_transformation)
 
-    val staticFiles = fileService[IO](
-      FileService.Config(
-        systemPath = state.config.frontendDistributionPath,
-        cacheStrategy = MemoryCache[IO](),
-      )
-    )
+    val kicksRoutes     = !SimpleRestJsonBuilder.routes(serviceImplUnified).resource
+    val dispatcher      = !Dispatcher.parallel[IO]
+    val kicksDocsRoutes = swagger.docs[IO](KicksServiceGen)
+    val authRoutes      = authManagementRoutes(dispatcher)
 
-    for {
-      kicksRoutes                    <- SimpleRestJsonBuilder.routes(serviceImplUnified).resource
-      dispatcher                     <- Dispatcher.parallel[IO]
-      kicksDocsRoutes                 = swagger.docs[IO](KicksServiceGen)
-      (sessionManagement, authRoutes) = authManagementRoutes(dispatcher)
-    } yield staticFiles <+> kicksRoutes <+> kicksDocsRoutes <+> authRoutes <+> rpcRoutes(state)
+    fileRoutes(state) <+> kicksRoutes <+> kicksDocsRoutes <+> authRoutes <+> rpcRoutes(state)
   }
 }

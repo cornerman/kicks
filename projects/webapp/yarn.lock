@@ -781,6 +781,11 @@ jiti@^1.19.1:
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.0.tgz#7c97f8fe045724e136a397f7340475244156105d"
   integrity sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==
 
+keratin-authn@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/keratin-authn/-/keratin-authn-1.4.1.tgz#d353f5136c5fc43d179de24eebbcdea5379cdfd8"
+  integrity sha512-6X50GtNv/1D0KYmCvf7rIV3op2Bnhp1FEKo8MS04IQw/QhTKb1Nt95GX6p2kND9I/d1t9yL1O3fVWjrK5mmmCQ==
+
 lilconfig@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/lilconfig/-/lilconfig-2.1.0.tgz#78e23ac89ebb7e1bfbf25b18043de756548e7f52"
