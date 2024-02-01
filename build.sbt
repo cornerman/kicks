@@ -17,7 +17,6 @@ val versions = new {
   val quill         = "4.8.1"
   val dottyCpsAsync = "0.9.19"
   val sttpOAuth2    = "0.17.0"
-  val pac4j         = "5.7.2"
   val jsoniter      = "2.28.0"
 }
 
@@ -113,15 +112,6 @@ lazy val httpServer = project
       "org.http4s"                            %% "http4s-ember-client"     % versions.http4s,
       "org.http4s"                            %% "http4s-ember-server"     % versions.http4s,
       "org.http4s"                            %% "http4s-dsl"              % versions.http4s,
-      "com.outr"                              %% "scalapass"               % "1.2.8",
-      "org.pac4j"                              % "pac4j-core"              % versions.pac4j,
-      "org.pac4j"                              % "pac4j-cas"               % versions.pac4j,
-      "org.pac4j"                              % "pac4j-http"              % versions.pac4j,
-      "org.pac4j"                              % "pac4j-jwt"               % versions.pac4j,
-      "org.pac4j"                              % "pac4j-oauth"             % versions.pac4j,
-      "org.pac4j"                             %% "http4s-pac4j"            % "4.3.0-SNAPSHOT",
-      "com.auth0"                              % "java-jwt"                % "4.4.0",
-      "com.auth0"                              % "jwks-rsa"                % "0.22.1",
       "com.github.cornerman"                  %% "http4s-jsoniter"         % "0.1.1",
       "com.github.cornerman"                  %% "keratin-authn-backend"   % "0.0.0+5-129e5a16-SNAPSHOT",
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"     % versions.jsoniter,
