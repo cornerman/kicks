@@ -110,6 +110,7 @@ lazy val httpServer = project
     libraryDependencies ++= Seq(
       "com.outr"                              %% "scribe-slf4j2"           % versions.scribe,
       "com.disneystreaming.smithy4s"          %% "smithy4s-http4s-swagger" % versions.smithy4s,
+      "org.http4s"                            %% "http4s-ember-client"     % versions.http4s,
       "org.http4s"                            %% "http4s-ember-server"     % versions.http4s,
       "org.http4s"                            %% "http4s-dsl"              % versions.http4s,
       "com.outr"                              %% "scalapass"               % "1.2.8",
@@ -121,6 +122,8 @@ lazy val httpServer = project
       "org.pac4j"                             %% "http4s-pac4j"            % "4.3.0-SNAPSHOT",
       "com.auth0"                              % "java-jwt"                % "4.4.0",
       "com.auth0"                              % "jwks-rsa"                % "0.22.1",
+      "com.github.cornerman"                  %% "http4s-jsoniter"         % "0.1.1",
+      "com.github.cornerman"                  %% "keratin-authn-backend"   % "0.0.0+5-129e5a16-SNAPSHOT",
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"     % versions.jsoniter,
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros"   % versions.jsoniter % "compile-internal",
     ),

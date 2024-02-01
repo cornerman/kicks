@@ -1,30 +1,36 @@
 package kicks.http
 
+import cps.*
+import cps.monads.catsEffect.{*, given}
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits.*
 import kicks.db.DbMigrations
+import org.http4s.ember.client.EmberClientBuilder
 
 object Main extends IOApp {
-  private enum Mode {
+  enum Mode {
     case Run, Migrate, Repair
   }
 
-  override def run(args: List[String]): IO[ExitCode] = {
+  override def run(args: List[String]): IO[ExitCode] = asyncScope[IO] {
     val modes = args.map(Mode.valueOf).toSet
 
-    val state = AppState.create(AppStateConfig.fromEnv())
+    val config = AppConfig.fromEnv()
 
-    val shouldRun     = modes.isEmpty || modes(Mode.Run)
-    val shouldMigrate = modes.isEmpty || modes(Mode.Migrate)
-    val shouldRepair  = modes(Mode.Repair)
+    if (modes(Mode.Repair)) {
+      await(DbMigrations.repair(config.jdbcUrl))
+    }
 
-    val runMigrations = DbMigrations.run(jdbcUrl = state.config.jdbcUrl, repair = shouldRepair)
-    val startServer   = Server.start(state).useForever
+    if (modes.isEmpty || modes(Mode.Run)) {
+      await(DbMigrations.migrate(config.jdbcUrl))
+    }
 
-    val program =
-      runMigrations.whenA(shouldMigrate) *>
-        startServer.whenA(shouldRun)
+    if (modes.isEmpty || modes(Mode.Migrate)) {
+      val client = await(EmberClientBuilder.default[IO].build)
+      val state  = AppState.create(config, client)
+      await(Server.start(state).useForever)
+    }
 
-    program.as(ExitCode.Success)
+    ExitCode.Success
   }
 }

@@ -22,6 +22,10 @@ services:
       IS_PRIMARY: "true"
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
+      AUTHN_ISSUER_URL: "http://authn"
+      AUTHN_ADMIN_URL: "http://authn"
+      AUTHN_ADMIN_USERNAME: "admin"
+      AUTHN_ADMIN_PASSWORD: "admin"
 
   litefs-replica1:
     build:
@@ -38,25 +42,28 @@ services:
       IS_PRIMARY: "false"
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
+      AUTHN_ISSUER_URL: "http://authn:3000"
+      AUTHN_ADMIN_URL: "http://authn:3000"
+      AUTHN_ADMIN_USERNAME: "admin"
+      AUTHN_ADMIN_PASSWORD: "admin"
 
-  authelia:
-    image: authelia/authelia
-    container_name: authelia
-    volumes:
-      - ./authelia:/config
-    networks:
-      - net
+  authn:
+    image: keratin/authn-server:latest
     ports:
-      - "9091:9091"
-    expose:
-      - 9091
-    restart: unless-stopped
-    healthcheck:
-      ## In production the healthcheck section should be commented.
-      disable: true
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - authn-data:/data
     environment:
-      - TZ=Europe/Paris
+      APP_DOMAINS: "localhost"
+      AUTHN_URL: "http://localhost:3000"
+      PUBLIC_PORT: 3001
+      SECRET_KEY_BASE: "test"
+      DATABASE_URL: "sqlite3://localhost//data/authn.db"
+    command: |
+      sh -c "./authn migrate && ./authn server"
 
 volumes:
   litefs-storage-primary:
   litefs-storage-replica1:
+  authn-data:
