@@ -52,7 +52,7 @@ lazy val scalaJsSettings = Seq(
 
 lazy val rpc = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
-  .in(file("projects/rpc"))
+  .in(file("modules/rpc"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
@@ -62,7 +62,7 @@ lazy val rpc = crossProject(JSPlatform, JVMPlatform)
 
 lazy val api = project
   .enablePlugins(smithy4s.codegen.Smithy4sCodegenPlugin)
-  .in(file("projects/api"))
+  .in(file("modules/api"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
@@ -71,7 +71,7 @@ lazy val api = project
   )
 
 lazy val db = project
-  .in(file("projects/db"))
+  .in(file("modules/db"))
   .enablePlugins(quillcodegen.plugin.CodegenPlugin)
   .settings(commonSettings)
   .settings(
@@ -95,7 +95,7 @@ lazy val db = project
   )
 
 lazy val httpServer = project
-  .in(file("projects/httpServer"))
+  .in(file("modules/httpServer"))
   .enablePlugins(GraalVMNativeImagePlugin)
   .dependsOn(api, rpc.jvm, db)
   .settings(commonSettings)
@@ -130,7 +130,7 @@ lazy val httpServer = project
   )
 
 lazy val webapp = project
-  .in(file("projects/webapp"))
+  .in(file("modules/webapp"))
   .enablePlugins(ScalaJSPlugin, ScalablyTypedConverterExternalNpmPlugin)
   .dependsOn(rpc.js)
   .settings(commonSettings, scalaJsSettings)
