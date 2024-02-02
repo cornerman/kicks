@@ -89,14 +89,22 @@ lazy val db = project
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
     quillcodegenJdbcUrl       := "jdbc:sqlite:target/quillcodegen.db",
+//    quillcodegenSetupTask := {
+//      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+//      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
+//      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
+//    },
     quillcodegenSetupTask := {
-      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
-      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
-      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
+      Def.task(IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))).value
+      executeSqlFile(file("./schema.sql")).value
     },
-//    quillcodegenSetupTask := Def.taskDyn {
-//      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-//      executeSqlFile(file("./schema.sql"))
+//    quillcodegenSetupTask := {
+//      Def
+//        .sequential(
+//          Def.task(IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))),
+//          executeSqlFile(file("./schema.sql")),
+//        )
+//        .value
 //    },
     libraryDependencies ++= Seq(
       "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
