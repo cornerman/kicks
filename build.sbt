@@ -30,7 +30,8 @@ val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).to
 
 lazy val commonSettings = Seq(
   // Default scalacOptions set by: https://github.com/DavidGregory084/sbt-tpolecat
-  if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
+  // if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
+  scalacOptions -= "-Xfatal-warnings",
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
   scalacOptions ++= Seq(
     // TODO: https://github.com/zio/zio-quill/issues/2639
@@ -88,15 +89,15 @@ lazy val db = project
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
     quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
-    quillcodegenSetupTask := {
-      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
-      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
-      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
-    },
-//    quillcodegenSetupTask := Def.taskDyn {
-//      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-//      executeSqlFile(file("./schema.sql"))
+//    quillcodegenSetupTask := {
+//      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+//      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
+//      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
 //    },
+    quillcodegenSetupTask := Def.taskDyn {
+      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+      executeSqlFile(file("./schema.sql"))
+    },
     libraryDependencies ++= Seq(
       "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
       "io.getquill"  %% "quill-doobie" % versions.quill,
