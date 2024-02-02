@@ -88,7 +88,7 @@ lazy val db = project
   .settings(commonSettings)
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
+    quillcodegenJdbcUrl       := "jdbc:sqlite:target/quillcodegen.db",
 //    quillcodegenSetupTask := {
 //      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
 //      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
