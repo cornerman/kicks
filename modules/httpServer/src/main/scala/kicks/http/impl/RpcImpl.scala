@@ -11,5 +11,3 @@ import kicks.rpc.{EventRpc, Rpc}
 object RpcImpl extends Rpc[IO] {
   override def foo(s: String): IO[String] = IO("Hej " + s)
 }
-
-

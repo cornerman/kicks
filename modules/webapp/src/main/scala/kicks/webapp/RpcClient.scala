@@ -27,7 +27,7 @@ private object RequestRpcTransport extends RequestTransport[String, IO] {
 
 private object EventRpcTransport extends RequestTransport[String, Observable] {
   override def apply(request: Request[String]): Observable[String] = {
-    //TODO: https://www.npmjs.com/package/@microsoft/fetch-event-source
+    // TODO: https://www.npmjs.com/package/@microsoft/fetch-event-source
     val pathPart = URIUtils.encodeURIComponent(request.payload)
     val url      = s"http://localhost:8080/${request.path.apiName}/${request.path.methodName}?payload=${pathPart}"
     EventSourceObservable(url).map(_.data.toString)
