@@ -16,8 +16,8 @@ val versions = new {
   val quill          = "4.8.1"
   val http4s         = "0.23.24"
   val http4sJsoniter = "0.1.1"
-  val authn          = "0.0.0+9-69b3e4a8-SNAPSHOT"
-  val outwatch       = "1.0.0+4-ea3b233c-SNAPSHOT"
+  val authn          = "0.1.2"
+  val outwatch       = "1.0.0+12-c2498e95-SNAPSHOT"
   val colibri        = "0.8.4"
 }
 
