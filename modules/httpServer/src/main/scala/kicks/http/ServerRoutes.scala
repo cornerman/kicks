@@ -1,38 +1,27 @@
 package kicks.http
 
-import cps.*
-import cps.syntax.unary_!
-import cps.monads.catsEffect.given
-import kicks.http.auth.AuthUser
-import kicks.api.KicksServiceGen
 import cats.data.{Kleisli, OptionT}
 import cats.effect.{IO, Resource}
-import cats.effect.std.Dispatcher
-import cats.implicits.{*, given}
-import org.http4s.implicits.given
+import cats.implicits.given
+import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
+import cps.*
+import cps.monads.catsEffect.given
+import cps.syntax.unary_!
 import fs2.Stream
-import kicks.http
-import authn.backend.{AuthnClient, AuthnClientConfig}
+import kicks.api.KicksServiceGen
+import kicks.http.auth.AuthUser
+import kicks.http.impl.{ApiImpl, EventRpcImpl, RpcImpl}
+import kicks.shared.AppConfig
 import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.{`Content-Type`, Location}
-import org.http4s.server.{AuthMiddleware, HttpMiddleware, Router}
+import org.http4s.server.{AuthMiddleware, Router}
 import org.http4s.server.staticcontent.{fileService, FileService, MemoryCache}
-import org.http4s.{AuthedRoutes, ContextRequest, HttpRoutes, Request, Response, ServerSentEvent}
-import smithy4s.{Transformation, UnsupportedProtocolError}
-import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
 import org.http4s.*
-import org.http4s.syntax.all.*
+import smithy4s.Transformation
+import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
+import http4sJsoniter.ArrayEntityCodec.*
+import org.http4s.headers.`Content-Type`
 
-import scala.tools.scalap.scalax.rules.scalasig.ClassFileParser.method
-
-def fileRoutes(state: AppState) = {
-  fileService[IO](
-    FileService.Config(
-      systemPath = state.config.frontendDistributionPath,
-      cacheStrategy = MemoryCache[IO](),
-    )
-  )
-}
+import scala.annotation.unused
 
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
@@ -43,18 +32,20 @@ object ServerRoutes {
   private val getAuthRequiredUser: Kleisli[OptionT[IO, *], Request[IO], AuthUser.User] =
     getAuthOptionalUser.collect { case user: AuthUser.User => user }
 
-  private val middlewareOptionalUser: AuthMiddleware[IO, AuthUser]      = AuthMiddleware(getAuthOptionalUser)
+  @unused
+  private val middlewareOptionalUser: AuthMiddleware[IO, AuthUser] = AuthMiddleware(getAuthOptionalUser)
+  @unused
   private val middlewareRequiredUser: AuthMiddleware[IO, AuthUser.User] = AuthMiddleware(getAuthRequiredUser)
 
-  private def rpcRoutes(state: AppState): HttpRoutes[IO] = {
+  private def rpcRoutes(state: ServerState): HttpRoutes[IO] = {
     import chameleon.{Deserializer, Serializer}
     import sloth.{RequestPath, Router, ServerFailure}
 
     implicit val serializer: Serializer[String, String]     = x => x
     implicit val deserializer: Deserializer[String, String] = x => Right(x)
 
-    val requestRouter = Router[String, IO].route(state.rpc)
-    val eventRouter   = Router[String, Stream[IO, *]].route(state.eventRpc)
+    val requestRouter = Router[String, IO].route(RpcImpl)
+    val eventRouter   = Router[String, Stream[IO, *]].route(EventRpcImpl)
 
     def serverFailureToResponse[F[_]]: ServerFailure => IO[Response[IO]] = {
       case ServerFailure.PathNotFound(_)        => NotFound()
@@ -85,12 +76,38 @@ object ServerRoutes {
     }
   }
 
-  def all(state: AppState): Resource[IO, HttpRoutes[IO]] = reify[Resource[IO, *]] {
-    val serviceImplUnified = state.api.transform(AppTypes.serviceResultTransform)(Transformation.service_absorbError_transformation)
+  private def fileRoutes(state: ServerState): HttpRoutes[IO] = {
+    fileService[IO](
+      FileService.Config(
+        systemPath = state.config.frontendDistributionPath,
+        cacheStrategy = MemoryCache[IO](),
+      )
+    )
+  }
 
-    val kicksRoutes     = !SimpleRestJsonBuilder.routes(serviceImplUnified).resource
+  private def infoRoutes(state: ServerState): HttpRoutes[IO] = {
+    def appConfig = AppConfig(
+      authnUrl = state.config.authnIssuerUrl
+    )
+
+    HttpRoutes.of[IO] {
+      case GET -> Root / "info" / "version"         => Ok("TODO")
+      case GET -> Root / "info" / "app_config.json" => Ok(appConfig)
+      case GET -> Root / "info" / "app_config.js" =>
+        val code = s"window.${AppConfig.domWindowProperty} = ${writeToString(appConfig)};"
+        Ok(code, `Content-Type`(MediaType.application.`javascript`))
+    }
+  }
+
+  def all(state: ServerState): Resource[IO, HttpRoutes[IO]] = async[Resource[IO, *]] {
+    val apiImpl = new ApiImpl(state.xa)
+    val apiImplF = apiImpl.transform(new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
+      def apply[E, A](fa: IO[Either[E, A]], injectError: E => Throwable): IO[A] = fa.map(_.leftMap(injectError)).rethrow
+    })(Transformation.service_absorbError_transformation)
+
+    val kicksRoutes     = !SimpleRestJsonBuilder.routes(apiImplF).resource
     val kicksDocsRoutes = swagger.docs[IO](KicksServiceGen)
 
-    fileRoutes(state) <+> kicksRoutes <+> kicksDocsRoutes <+> rpcRoutes(state)
+    fileRoutes(state) <+> infoRoutes(state) <+> kicksRoutes <+> kicksDocsRoutes <+> rpcRoutes(state)
   }
 }

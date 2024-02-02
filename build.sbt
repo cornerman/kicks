@@ -9,16 +9,16 @@ ThisBuild / organization := "kicks"
 ThisBuild / scalaVersion := "3.3.1"
 
 val versions = new {
-  val scribe        = "3.13.0"
-  val dottyCpsAsync = "0.9.19"
-  val smithy4s      = "0.18.5"
-  val jsoniter      = "2.28.0"
-  val quill         = "4.8.1"
-  val http4s        = "0.23.24"
+  val scribe         = "3.13.0"
+  val dottyCpsAsync  = "0.9.19"
+  val smithy4s       = "0.18.5"
+  val jsoniter       = "2.28.0"
+  val quill          = "4.8.1"
+  val http4s         = "0.23.24"
   val http4sJsoniter = "0.1.1"
-  val authn         = "0.0.0+9-69b3e4a8-SNAPSHOT"
-  val outwatch      = "1.0.0+4-ea3b233c-SNAPSHOT"
-  val colibri       = "0.8.4"
+  val authn          = "0.0.0+9-69b3e4a8-SNAPSHOT"
+  val outwatch       = "1.0.0+4-ea3b233c-SNAPSHOT"
+  val colibri        = "0.8.4"
 }
 
 ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
@@ -50,6 +50,17 @@ lazy val scalaJsSettings = Seq(
   libraryDependencies += "org.scala-js"        %%% "scala-js-macrotask-executor" % "1.1.1",
 )
 
+lazy val shared = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/shared"))
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % versions.jsoniter,
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % versions.jsoniter % "compile-internal",
+    )
+  )
+
 lazy val rpc = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .in(file("modules/rpc"))
@@ -77,15 +88,15 @@ lazy val db = project
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
     quillcodegenJdbcUrl       := "jdbc:sqlite:/tmp/kicks-quillcodegen.db",
-    // quillcodegenSetupTask := {
-    //  val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
-    //  val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
-    //  require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
-    // },
-    quillcodegenSetupTask := Def.taskDyn {
-      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
-      executeSqlFile(file("./schema.sql"))
+    quillcodegenSetupTask := {
+      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
+      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
     },
+//    quillcodegenSetupTask := Def.taskDyn {
+//      IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))
+//      executeSqlFile(file("./schema.sql"))
+//    },
     libraryDependencies ++= Seq(
       "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
       "io.getquill"  %% "quill-doobie" % versions.quill,
@@ -97,7 +108,7 @@ lazy val db = project
 lazy val httpServer = project
   .in(file("modules/httpServer"))
   .enablePlugins(GraalVMNativeImagePlugin)
-  .dependsOn(api, rpc.jvm, db)
+  .dependsOn(api, rpc.jvm, shared.jvm, db)
   .settings(commonSettings)
   .settings(
     Compile / run / fork := true,
@@ -108,22 +119,20 @@ lazy val httpServer = project
       case x                                              => MergeStrategy.last
     },
     libraryDependencies ++= Seq(
-      "com.outr"                              %% "scribe-slf4j2"           % versions.scribe,
-      "com.disneystreaming.smithy4s"          %% "smithy4s-http4s-swagger" % versions.smithy4s,
-      "org.http4s"                            %% "http4s-ember-client"     % versions.http4s,
-      "org.http4s"                            %% "http4s-ember-server"     % versions.http4s,
-      "org.http4s"                            %% "http4s-dsl"              % versions.http4s,
-      "com.github.cornerman"                  %% "http4s-jsoniter"         % versions.http4sJsoniter,
-      "com.github.cornerman"                  %% "keratin-authn-backend"   % versions.authn,
-      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-core"     % versions.jsoniter,
-      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros"   % versions.jsoniter % "compile-internal",
+      "com.outr"                     %% "scribe-slf4j2"           % versions.scribe,
+      "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % versions.smithy4s,
+      "org.http4s"                   %% "http4s-ember-client"     % versions.http4s,
+      "org.http4s"                   %% "http4s-ember-server"     % versions.http4s,
+      "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
+      "com.github.cornerman"         %% "http4s-jsoniter"         % versions.http4sJsoniter,
+      "com.github.cornerman"         %% "keratin-authn-backend"   % versions.authn,
     ),
   )
 
 lazy val webapp = project
   .in(file("modules/webapp"))
   .enablePlugins(ScalaJSPlugin, ScalablyTypedConverterExternalNpmPlugin)
-  .dependsOn(rpc.js)
+  .dependsOn(rpc.js, shared.js)
   .settings(commonSettings, scalaJsSettings)
   .settings(
     libraryDependencies ++= Seq(

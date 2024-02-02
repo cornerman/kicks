@@ -4,10 +4,11 @@ import cps.*
 import cps.monads.catsEffect.given
 import cps.syntax.unary_!
 import cats.effect.{Async, IO, IOApp}
-import kicks.webapp.state.AppState
 import outwatch.{Outwatch, VNode}
 import authn.frontend.*
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
+import colibri.jsdom.EventSourceObservable
+import org.scalajs.dom
 
 object Main extends IOApp.Simple {
 
@@ -40,7 +41,8 @@ object Main extends IOApp.Simple {
   }
 
   override def run = async[IO] {
-    val state = AppState()
+    val config = AppConfigLoader.fromDomOrThrow()
+    val state  = AppState(config)
 
     !state.authn.restoreSession.voidError
     !Outwatch.renderReplace[IO]("#app", app(state))

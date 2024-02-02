@@ -12,7 +12,7 @@ import org.http4s.server.middleware.Logger
 import scala.concurrent.duration.DurationInt
 
 object Server {
-  def start(state: AppState): Resource[IO, Unit] = async[Resource[IO, *]] {
+  def start(state: ServerState): Resource[IO, Unit] = async[Resource[IO, *]] {
     val routes = !ServerRoutes.all(state)
 
     val _ = !EmberServerBuilder

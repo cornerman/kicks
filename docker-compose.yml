@@ -22,8 +22,9 @@ services:
       IS_PRIMARY: "true"
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
-      AUTHN_ISSUER_URL: "http://authn"
-      AUTHN_ADMIN_URL: "http://authn"
+      AUTHN_AUDIENCES: "localhost"
+      AUTHN_ISSUER_URL: "http://localhost:3000"
+      AUTHN_ADMIN_URL: "http://authn:3001"
       AUTHN_ADMIN_USERNAME: "admin"
       AUTHN_ADMIN_PASSWORD: "admin"
 
@@ -42,8 +43,9 @@ services:
       IS_PRIMARY: "false"
       ADVERTISE_URL: "http://litefs-primary:20202"
       DATABASE_URL: "jdbc:sqlite:/litefs/kicks.db?foreign_keys=ON"
-      AUTHN_ISSUER_URL: "http://authn:3000"
-      AUTHN_ADMIN_URL: "http://authn:3000"
+      AUTHN_AUDIENCE: "localhost"
+      AUTHN_ISSUER_URL: "http://localhost:3000"
+      AUTHN_ADMIN_URL: "http://authn:3001"
       AUTHN_ADMIN_USERNAME: "admin"
       AUTHN_ADMIN_PASSWORD: "admin"
 

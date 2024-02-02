@@ -1,8 +1,9 @@
-package kicks.webapp.state
+package kicks.webapp
 
 import authn.frontend.{AuthnClient, AuthnClientConfig, SessionStorage}
 import cats.effect.IO
 import colibri.reactive.{Rx, Var}
+import kicks.shared.AppConfig
 import outwatch.EventDispatcher
 
 sealed trait AppCommand
@@ -14,9 +15,10 @@ object AppCommand {
 case class SubState()
 
 case class AppState(
+  config: AppConfig
 //  subcomponent2: SubState,
 ) extends EventDispatcher.Callback[AppCommand] {
-  
+
   private object vars {
     val todos        = Var(Vector.empty[String])
     val subcomponent = Var(SubState())
@@ -32,7 +34,7 @@ case class AppState(
 
   val authn = AuthnClient[IO](
     AuthnClientConfig(
-      hostUrl = "http://localhost:3000",
+      hostUrl = config.authnUrl,
       sessionStorage = SessionStorage.LocalStorage("kickssession"),
     )
   )

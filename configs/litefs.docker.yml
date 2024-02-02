@@ -18,7 +18,7 @@ lease:
 #     - "*.png"
 
 exec:
-  - cmd: "java -jar httpServer.jar Migrate Run"
+  - cmd: "java -jar httpServer.jar Migrate Server"
     if-candidate: true
-  - cmd: "java -jar httpServer.jar Run"
+  - cmd: "java -jar httpServer.jar Server"
     if-candidate: false
