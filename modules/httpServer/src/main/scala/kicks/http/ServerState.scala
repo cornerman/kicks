@@ -12,14 +12,11 @@ case class ServerState(
 )
 
 object ServerState {
-  def create(config: ServerConfig, client: Client[IO]): ServerState = {
-    val xa = Transactor.fromDriverManager[IO]("org.sqlite.JDBC", config.jdbcUrl, None)
-    ServerState(
-      xa = xa,
-      authn = AuthnClient[IO](authnConfig(config), client),
-      config = config,
-    )
-  }
+  def create(config: ServerConfig, client: Client[IO]): ServerState = ServerState(
+    xa = Transactor.fromDriverManager[IO]("org.sqlite.JDBC", config.jdbcUrl, None),
+    authn = AuthnClient[IO](authnConfig(config), client),
+    config = config,
+  )
 
   private def authnConfig(config: ServerConfig) = AuthnClientConfig(
     issuer = config.authnIssuerUrl,

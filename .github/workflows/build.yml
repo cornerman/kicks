@@ -42,7 +42,7 @@ jobs:
 
       - name: Yarn install
         run: |
-          cd projects/webapp
+          cd modules/webapp
           yarn install --frozen-lockfile
 
       - name: Compile and Test

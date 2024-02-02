@@ -12,8 +12,7 @@ object Main extends IOApp {
   enum Mode { case Server, Migrate, Repair }
 
   override def run(args: List[String]): IO[ExitCode] = asyncScope[IO] {
-    val modes = args.map(Mode.valueOf).toSet
-
+    val modes  = args.map(Mode.valueOf).toSet
     val config = ServerConfig.fromEnvOrThrow()
 
     if (modes(Mode.Repair)) {

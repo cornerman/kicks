@@ -1,14 +1,17 @@
 package kicks.webapp
 
+import authn.frontend.*
+import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
+import cats.effect.{IO, IOApp}
 import cps.*
 import cps.monads.catsEffect.given
 import cps.syntax.unary_!
-import cats.effect.{Async, IO, IOApp}
-import outwatch.{Outwatch, VNode}
-import authn.frontend.*
-import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
-import colibri.jsdom.EventSourceObservable
+import kicks.shared.AppConfig
 import org.scalajs.dom
+import com.github.plokhotnyuk.jsoniter_scala.core.readFromString
+import outwatch.{Outwatch, VNode}
+
+import scala.scalajs.js
 
 object Main extends IOApp.Simple {
 
@@ -41,8 +44,10 @@ object Main extends IOApp.Simple {
   }
 
   override def run = async[IO] {
-    val config = AppConfigLoader.fromDomOrThrow()
-    val state  = AppState(config)
+    val configJs = dom.window.asInstanceOf[js.Dictionary[js.Any]](AppConfig.domWindowProperty)
+    val config   = readFromString[AppConfig](js.JSON.stringify(configJs))
+
+    val state = AppState(config)
 
     !state.authn.restoreSession.voidError
     !Outwatch.renderReplace[IO]("#app", app(state))
