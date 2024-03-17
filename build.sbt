@@ -116,7 +116,6 @@ lazy val db = project
 
 lazy val httpServer = project
   .in(file("modules/httpServer"))
-  .enablePlugins(GraalVMNativeImagePlugin)
   .dependsOn(api, rpc.jvm, shared.jvm, db)
   .settings(commonSettings)
   .settings(
