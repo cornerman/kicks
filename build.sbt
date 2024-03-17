@@ -4,7 +4,7 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / version      := "0.1.0-SNAPSHOT"
+ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "kicks"
 ThisBuild / scalaVersion := "3.3.1"
 
@@ -88,16 +88,16 @@ lazy val db = project
   .settings(commonSettings)
   .settings(
     quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl       := "jdbc:sqlite:target/quillcodegen.db",
-//    quillcodegenSetupTask := {
-//      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
-//      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
-//      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
-//    },
+    quillcodegenJdbcUrl := "jdbc:sqlite:target/quillcodegen.db",
     quillcodegenSetupTask := {
-      Def.task(IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))).value
-      executeSqlFile(file("./schema.sql")).value
+      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
+      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
+      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
     },
+//    quillcodegenSetupTask := {
+//      Def.task(IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))).value
+//      executeSqlFile(file("./schema.sql")).value
+//    },
 //    quillcodegenSetupTask := {
 //      Def
 //        .sequential(
@@ -167,3 +167,4 @@ lazy val webapp = project
   )
 
 addCommandAlias("dev", "webapp/fastLinkJS; httpServer/reStart")
+addCommandAlias("prod", "webapp/fullLinkJS; httpServer/assembly")

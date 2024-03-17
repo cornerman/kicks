@@ -18,11 +18,8 @@ RUN litefs version
 WORKDIR /app
 
 COPY $LITEFS_CONFIG litefs.yml
-COPY projects/httpServer/target/universal/stage/bin bin
-COPY projects/httpServer/target/universal/stage/lib/kicks* bin/
-COPY projects/httpServer/target/universal/stage/lib/kicks* bin/
-COPY projects/httpServer/target/scala-3.*/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
-COPY projects/webapp/dist $FRONTEND_DISTRIBUTION_PATH
+COPY modules/httpServer/target/scala-3.*/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
+COPY modules/webapp/dist $FRONTEND_DISTRIBUTION_PATH
 
 # Actual entrypoint/command inside litefs.yml
 ENTRYPOINT litefs mount

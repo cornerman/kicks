@@ -1,6 +1,8 @@
 package kicks.webapp
 
+import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 import colibri.{Observable, Observer, Subject}
+import colibri.reactive.*
 import outwatch.*
 import outwatch.dsl.*
 
@@ -46,7 +48,38 @@ object App {
       cls := "navbar shadow-lg",
     )
 
-  def authControls = div("auth")
+  def authControls: VModM[AppState] = VMod.eval {
+    val username = Var("")
+    val password = Var("")
+
+    form(
+      cls := "flex space-x-2 items-end",
+      onSubmit.preventDefault.asAccess[AppState].foreachEffect { state =>
+        state.authn.signup(Credentials(username = username.now(), password = password.now()))
+      },
+      label(
+        cls := "form-control w-full",
+        div(cls := "label", span(cls := "label-text", "Username")),
+        input(
+          cls := "input input-bordered w-full",
+          tpe := "text",
+          value <-- username,
+          onInput.value --> username,
+        ),
+      ),
+      label(
+        cls := "form-control w-full",
+        div(cls := "label label-text", "Password"),
+        input(
+          cls := "input input-bordered w-full",
+          tpe := "password",
+          value <-- password,
+          onInput.value --> password,
+        ),
+      ),
+      input(tpe := "submit", cls := "btn btn-primary", value := "Register"),
+    )
+  }
 
   def pageLink(name: String, page: Page) = {
     val styling = Page.current.map {
