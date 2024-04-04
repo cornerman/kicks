@@ -3,7 +3,7 @@
     "nodejs@latest",
     "yarn@latest",
     "sbt@latest",
-    "fly"
+    "fly@latest"
   ],
   "shell": {
     "init_hook": [

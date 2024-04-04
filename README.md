@@ -2,6 +2,17 @@
 
 HttpServer with sqlite database (litefs). Deployable to fly.io.
 
+## Requirements
+
+You can use devbox:
+```sh
+devbox shell
+```
+
+If you use direnv, this happens automatically.
+
+Otherwise you will need the packages mentioned in `./devbox.json`.
+
 ## Development
 
 Compile scala code (includes code generation for database schema and smithy4s api):

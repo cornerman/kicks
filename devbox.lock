@@ -1,9 +1,25 @@
 {
   "lockfile_version": "1",
   "packages": {
-    "fly": {
-      "resolved": "github:NixOS/nixpkgs/75a52265bda7fd25e06e3a67dee3f0354e73243c#fly",
-      "source": "nixpkg"
+    "fly@latest": {
+      "last_modified": "2024-03-22T11:26:23Z",
+      "resolved": "github:NixOS/nixpkgs/a3ed7406349a9335cb4c2a71369b697cecd9d351#fly",
+      "source": "devbox-search",
+      "version": "7.11.2",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/jqiffp5lqdvcz6xbiy7hp5lqh7xml88z-fly-7.11.2"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/qdl6b7vihf63izkj84af6j31c87ya4h9-fly-7.11.2"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/f16qx49lyipxk0krsr4v1qzx9pzrlfq0-fly-7.11.2"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/6gjsfp3qwyb81c8h360s4kb719hf7rk6-fly-7.11.2"
+        }
+      }
     },
     "nodejs@latest": {
       "last_modified": "2024-03-22T11:26:23Z",
