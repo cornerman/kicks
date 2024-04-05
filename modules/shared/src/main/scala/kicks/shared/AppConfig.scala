@@ -7,7 +7,7 @@ case class AppConfig(
   authnUrl: String
 )
 object AppConfig {
-  implicit val codec: JsonValueCodec[AppConfig] = JsonCodecMaker.make
+  given JsonValueCodec[AppConfig] = JsonCodecMaker.make
 
   def domWindowProperty: String = "AppConfig"
 }

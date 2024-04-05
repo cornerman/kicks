@@ -11,10 +11,11 @@ import sloth.{Client, Request, RequestTransport}
 import scala.scalajs.js.URIUtils
 
 object RpcClient {
-  implicit val serializer: Serializer[String, String]     = x => x
-  implicit val deserializer: Deserializer[String, String] = x => Right(x)
-  val requestRpc                                          = Client[String, IO](RequestRpcTransport).wire[Rpc[IO]]
-  val eventRpc                                            = Client[String, Observable](EventRpcTransport).wire[EventRpc[Observable]]
+  given Serializer[String, String]   = x => x
+  given Deserializer[String, String] = x => Right(x)
+
+  val requestRpc = Client[String, IO](RequestRpcTransport).wire[Rpc[IO]]
+  val eventRpc   = Client[String, Observable](EventRpcTransport).wire[EventRpc[Observable]]
 }
 
 private object RequestRpcTransport extends RequestTransport[String, IO] {
