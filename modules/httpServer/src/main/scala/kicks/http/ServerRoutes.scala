@@ -71,7 +71,8 @@ object ServerRoutes {
               }
             case None => BadRequest()
           }
-        case (None, None) => NotFound()
+        case (None, None) =>
+          NotFound()
       }
     }
   }
@@ -108,6 +109,10 @@ object ServerRoutes {
     val kicksRoutes     = !SimpleRestJsonBuilder.routes(apiImplF).resource
     val kicksDocsRoutes = swagger.docs[IO](KicksServiceGen)
 
-    fileRoutes(state) <+> infoRoutes(state) <+> kicksRoutes <+> kicksDocsRoutes <+> rpcRoutes(state)
+    fileRoutes(state) <+>
+      infoRoutes(state) <+>
+      kicksRoutes <+>
+      kicksDocsRoutes <+>
+      rpcRoutes(state)
   }
 }

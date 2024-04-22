@@ -9,6 +9,6 @@ addSbtPlugin("com.disneystreaming.smithy4s" % "smithy4s-sbt-codegen" % "0.18.5")
 addSbtPlugin("com.github.cornerman"         % "sbt-quillcodegen"     % "0.1.5")
 
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.0.0")
-addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.15.0")
+addSbtPlugin("org.scala-js"       % "sbt-scalajs"              % "1.16.0")
 
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta44")

@@ -6,7 +6,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "kicks"
-ThisBuild / scalaVersion := "3.3.1"
+ThisBuild / scalaVersion := "3.4.1"
 
 val versions = new {
   val scribe         = "3.13.0"
@@ -26,7 +26,7 @@ ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "alway
 // Uncomment, if you want to use snapshot dependencies from sonatype
 ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
-val isCI = sys.env.get("CI").flatMap(value => scala.util.Try(value.toBoolean).toOption).getOrElse(false)
+val isCI = sys.env.get("CI").contains("true")
 
 lazy val commonSettings = Seq(
   // Default scalacOptions set by: https://github.com/DavidGregory084/sbt-tpolecat

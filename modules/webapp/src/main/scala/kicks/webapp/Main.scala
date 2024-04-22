@@ -34,6 +34,7 @@ object Main extends IOApp.Simple {
           state.authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
         },
       ),
+      b(state.authn.session),
       button(
         "Logout",
         onClick.doEffect {
