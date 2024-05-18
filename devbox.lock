@@ -1,6 +1,54 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "earthly@latest": {
+      "last_modified": "2024-05-07T16:34:24Z",
+      "resolved": "github:NixOS/nixpkgs/951e02301002a3100bf102bfb05272611633932e#earthly",
+      "source": "devbox-search",
+      "version": "0.8.9",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/yk2d463dcgzi43mh7znyxhf3wjjdg0px-earthly-0.8.9",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/yk2d463dcgzi43mh7znyxhf3wjjdg0px-earthly-0.8.9"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/pm81czhpbws9av2hlbmr7gbwg01wi8rj-earthly-0.8.9",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/pm81czhpbws9av2hlbmr7gbwg01wi8rj-earthly-0.8.9"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/qy4ras6zwkc26s5ic9pr5bqv56nc6w8q-earthly-0.8.9",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/qy4ras6zwkc26s5ic9pr5bqv56nc6w8q-earthly-0.8.9"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ndjri3j1xgglbr5vqp9gbah80n3dmdjx-earthly-0.8.9",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ndjri3j1xgglbr5vqp9gbah80n3dmdjx-earthly-0.8.9"
+        }
+      }
+    },
     "fly@latest": {
       "last_modified": "2024-03-22T11:26:23Z",
       "resolved": "github:NixOS/nixpkgs/a3ed7406349a9335cb4c2a71369b697cecd9d351#fly",
