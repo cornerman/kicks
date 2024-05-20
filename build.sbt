@@ -160,6 +160,7 @@ lazy val webapp = project
     // scalablytyped
     externalNpm := baseDirectory.value,
     stIgnore ++= List(
+      "@shoelace-style/shoelace",
       "snabbdom",     // facade by outwatch
       "keratin-authn",// facade by keratin-authn-frontend
     ),

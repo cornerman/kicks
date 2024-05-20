@@ -17,30 +17,40 @@ object Main extends IOApp.Simple {
 
   private def app(state: AppState): VNode = {
     import outwatch.dsl.*
+    import outwatch.*
+
+    import colibri.*
 
     div(
-      RpcClient.requestRpc.foo("wolf"),
-      RpcClient.eventRpc.foo("peter"),
-      App.layout.provide(state),
-      button(
-        "Register",
-        onClick.doEffect {
-          state.authn.signup(Credentials(username = "est", password = "wolfgang254!!??"))
-        },
-      ),
-      button(
-        "Login",
-        onClick.doEffect {
-          state.authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
-        },
-      ),
-      b(state.authn.session),
-      button(
-        "Logout",
-        onClick.doEffect {
-          state.authn.logout
-        },
-      ),
+      Observable
+        .intervalMillis(1000000)
+        .map {
+          case i if i % 2 == 0 => Test.foo()
+          case _ => i("Hallo")
+        }
+
+//      RpcClient.requestRpc.foo("wolf"),
+//      RpcClient.eventRpc.foo("peter"),
+//      App.layout.provide(state),
+//      button(
+//        "Register",
+//        onClick.doEffect {
+//          state.authn.signup(Credentials(username = "est", password = "wolfgang254!!??"))
+//        },
+//      ),
+//      button(
+//        "Login",
+//        onClick.doEffect {
+//          state.authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
+//        },
+//      ),
+//      b(state.authn.session),
+//      button(
+//        "Logout",
+//        onClick.doEffect {
+//          state.authn.logout
+//        },
+//      ),
     )
   }
 

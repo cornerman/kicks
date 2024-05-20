@@ -47,7 +47,7 @@ object App {
       ),
       cls := "navbar shadow-lg",
     )
-
+    
   def authControls: VModM[AppState] = VMod.eval {
     val username = Var("")
     val password = Var("")

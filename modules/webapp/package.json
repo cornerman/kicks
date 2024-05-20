@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@shoelace-style/shoelace": "^2.15.0",
+    "@zag-js/toggle-group": "^0.50.0",
     "keratin-authn": "^1.4.1",
     "snabbdom": "github:outwatch/snabbdom.git#semver:0.7.5"
   },
