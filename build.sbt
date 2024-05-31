@@ -84,14 +84,17 @@ lazy val api = project
 
 lazy val db = project
   .in(file("modules/db"))
-  .enablePlugins(quillcodegen.plugin.CodegenPlugin)
+  .enablePlugins(dbcodegen.plugin.DbCodegenPlugin)
   .settings(commonSettings)
   .settings(
-    quillcodegenPackagePrefix := "kicks.db",
-    quillcodegenJdbcUrl := "jdbc:sqlite:target/quillcodegen.db",
-    quillcodegenSetupTask := {
-      Def.task(IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))).value
-      executeSqlFile(file("./schema.sql")).value
+    dbcodegenTemplateFiles := Seq(
+      file("codegen/src/main/resources/table_case_class.scala.ssp"),
+      file("codegen/src/main/resources/table_case_class_magnum.scala.ssp"),
+      file("codegen/src/main/resources/table_case_class_quill.scala.ssp"),
+    ),
+    dbcodegenJdbcUrl := "jdbc:sqlite:file::memory:?cache=shared",
+    dbcodegenSetupTask := { db =>
+      db.executeSqlFile(file("./schema.sql"))
     },
 //    quillcodegenSetupTask := {
 //      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
@@ -108,6 +111,7 @@ lazy val db = project
 //    },
     libraryDependencies ++= Seq(
       "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
+      "com.augustnagro" %% "magnum" % "1.1.1",
       "io.getquill"  %% "quill-doobie" % versions.quill,
       "org.tpolecat" %% "doobie-core"  % "1.0.0-RC5",
       "org.flywaydb"  % "flyway-core"  % "10.6.0",

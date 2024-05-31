@@ -4,8 +4,7 @@ import cats.implicits.*
 import doobie.ConnectionIO
 import doobie.implicits.*
 import io.getquill.*
-import kicks.db.schema.*
-import kicks.db.schema.SchemaExtensions.*
+import kicks.db.quill.schema.*
 
 sealed trait WithId[EntityId, Entity] {
   def getId(entity: Entity): EntityId
@@ -20,8 +19,8 @@ object Db {
   import ctx.*
 
   def fun(person: Foo): ConnectionIO[Unit] = {
-    val queryRun: ConnectionIO[Unit]  = run(FooDao.query).map(println(_))
-    val insertRun: ConnectionIO[Unit] = run(FooDao.query.insertValue(lift(person))).map(println(_))
+    val queryRun: ConnectionIO[Unit]  = run(Foo.query).map(println(_))
+    val insertRun: ConnectionIO[Unit] = run(Foo.query.insertValue(lift(person))).map(println(_))
     queryRun *> insertRun *> queryRun
   }
 

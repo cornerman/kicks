@@ -1,32 +1,26 @@
-package kicks.db.${schema.scalaName}
+<%@ val schema: dbcodegen.DataSchema %>
 
-#for (table <- schema.tables)
-
-case class ${table.rowBase.scalaName}(
-  #for (column <- table.rowBase.columns)
-  column.scalaName: column.scalaType,
-  #end
-)
-object ${table.rowBase.scalaName} {
-  #for (row <- table.rowVariations)
-  case class ${row.scalaName}(
-    #for (column <- row.columns)
-    column.scalaName: column.scalaType,
-    #end
-  )
-}
-
-#end
+package kicks.db.plain.${schema.name}
 
 #for (enum <- schema.enums)
 
 enum ${enum.scalaName}(val sqlValue: String) {
   #for (enumValue <- enum.values)
-  case ${enumValue.scalaName} extends ${enum.scalaName}("${enumValue.value}")
+  case ${enumValue.scalaName} extends ${enum.scalaName}("${enumValue.name}")
   #end
 }
 object ${enum.scalaName} {
   def bySqlValue(searchValue: String): Option[${enum.scalaName}] = values.find(_.sqlValue == searchValue)
 }
+
+#end
+
+#for (table <- schema.tables)
+
+case class ${table.scalaName}(
+  #for (column <- table.columns)
+  ${column.scalaName}: ${column.scalaType},
+  #end
+)
 
 #end

@@ -5,7 +5,7 @@ import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import kicks.api.{AppError, Greeting, KicksServiceGen}
 import kicks.db.Db
-import kicks.db.schema.Foo
+import kicks.db.quill.schema.Foo
 
 class ApiImpl(xa: Transactor[IO]) extends KicksServiceGen[[_, E, A, _, _] =>> IO[Either[E, A]]] {
   override def hello(name: String, town: Option[String]) = name match {

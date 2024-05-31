@@ -1,7 +1,7 @@
 package kicks.webapp
 
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
-import colibri.{Observable, Observer, Subject}
+import colibri.Observable
 import colibri.reactive.*
 import outwatch.*
 import outwatch.dsl.*
@@ -47,7 +47,7 @@ object App {
       ),
       cls := "navbar shadow-lg",
     )
-    
+
   def authControls: VModM[AppState] = VMod.eval {
     val username = Var("")
     val password = Var("")

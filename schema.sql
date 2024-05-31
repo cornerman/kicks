@@ -5,7 +5,7 @@
 -- - PRIMARY KEY needs NOT NULL, otherwise liquibase will oscillate between create/drop not-null-constraint.
 -- - CREATE TABLE misses foreign keys
 
-CREATE TABLE foo(wolf text);
+CREATE TABLE foo(wolf text PRIMARY key);
 
 -- Create Address table
 CREATE TABLE Address (
