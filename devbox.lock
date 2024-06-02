@@ -1,6 +1,54 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "atlas@latest": {
+      "last_modified": "2024-05-29T10:04:41Z",
+      "resolved": "github:NixOS/nixpkgs/ac82a513e55582291805d6f09d35b6d8b60637a1#atlas",
+      "source": "devbox-search",
+      "version": "0.23.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2bcz7jlgxf5dxb4gdj5qwsf3xd0bidvd-atlas-0.23.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2bcz7jlgxf5dxb4gdj5qwsf3xd0bidvd-atlas-0.23.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/c87ik1rhpmp5mcldpxfc5c8nh39gm1j5-atlas-0.23.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/c87ik1rhpmp5mcldpxfc5c8nh39gm1j5-atlas-0.23.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/x9m61dsj289sjqpx7v83032h9jdm10an-atlas-0.23.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/x9m61dsj289sjqpx7v83032h9jdm10an-atlas-0.23.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/cxscql09flki4f4cs7aw3rnv0kxcf5nh-atlas-0.23.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/cxscql09flki4f4cs7aw3rnv0kxcf5nh-atlas-0.23.0"
+        }
+      }
+    },
     "earthly@latest": {
       "last_modified": "2024-05-07T16:34:24Z",
       "resolved": "github:NixOS/nixpkgs/951e02301002a3100bf102bfb05272611633932e#earthly",
@@ -107,6 +155,54 @@
         },
         "x86_64-linux": {
           "store_path": "/nix/store/zadhq90vpjaflmczlzz2828h08dfbl1z-sbt-1.9.9"
+        }
+      }
+    },
+    "schemacrawler@latest": {
+      "last_modified": "2024-05-22T06:18:38Z",
+      "resolved": "github:NixOS/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e#schemacrawler",
+      "source": "devbox-search",
+      "version": "16.21.2",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5bdhb5zj7z6bs12jr2smc9gyhr7y6inf-schemacrawler-16.21.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5bdhb5zj7z6bs12jr2smc9gyhr7y6inf-schemacrawler-16.21.2"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/z7rhm1sziqg7c3p3s0nb4z4cdigzzk9w-schemacrawler-16.21.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/z7rhm1sziqg7c3p3s0nb4z4cdigzzk9w-schemacrawler-16.21.2"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5j1rmx7m14y1pbkz8fgxqnx3rf61v1fh-schemacrawler-16.21.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5j1rmx7m14y1pbkz8fgxqnx3rf61v1fh-schemacrawler-16.21.2"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/b9fzczy9w9yzhw00nzza9s89m8mwwnv0-schemacrawler-16.21.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/b9fzczy9w9yzhw00nzza9s89m8mwwnv0-schemacrawler-16.21.2"
         }
       }
     },

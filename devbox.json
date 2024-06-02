@@ -5,6 +5,8 @@
     "sbt@latest",
     "fly@latest",
     "earthly@latest",
+    "atlas@latest",
+    "schemacrawler@latest",
   ],
   "shell": {
     "init_hook": [

@@ -44,6 +44,10 @@ jobs:
           cd modules/webapp
           yarn install --frozen-lockfile
 
+      - name: Check db schema and migrations
+        run: |
+          diff-db-migration-against-schema
+
       - name: Compile and Test
         run: |
           sbt --mem 4096 test scalafmtCheck scalafmtSbtCheck

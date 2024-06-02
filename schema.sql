@@ -1,16 +1,11 @@
 -- This file represents the database schema. You can edit it.
--- After editing, we create a new migration file with liquibase.
---
--- Info:
--- - PRIMARY KEY needs NOT NULL, otherwise liquibase will oscillate between create/drop not-null-constraint.
--- - CREATE TABLE misses foreign keys
+-- After editing, we create a new migration file.
 
 CREATE TABLE foo(wolf text PRIMARY key);
 
 -- Create Address table
 CREATE TABLE Address (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    street_number Integer
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
 );
 
 -- Create Person table
@@ -18,12 +13,21 @@ CREATE TABLE Person (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     foo TEXT,
     name TEXT NOT NULL,
-    age Integer
+    age Integer,
+    wolfgang TEXT,
+    haha TEXT not null
     --address_id INTEGER,
     --bar text,
     --blub INTEGER NOT NULL,
     --FOREIGN KEY (address_id) REFERENCES Address(id)
 );
+
+create index person_name_and_age on person(name, age);
+create index person_haha on person(haha);
+
+create view my_view as select id from Person;
+--create index my_view_name_and_age on my_view(name, age);
+--create unique index my_view_foo on my_view(foo);
 
 --CREATE INDEX idx_posts_user_id ON Address (id);
 --CREATE INDEX idx_comments_post_id ON Person (id);

@@ -8,7 +8,16 @@ case class ServerConfig(
   authnAdminUsername: String,
   authnAdminPassword: String,
   authnAudience: String,
-)
+) {
+  override def toString(): String = {
+    val fields = productElementNames.zip(productIterator).map { (name, value) =>
+      val isSecret       = name.toLowerCase.contains("password") || name.toLowerCase.contains("secret")
+      val sanitizedValue = if (isSecret) "***" else value
+      s"$name = $sanitizedValue"
+    }
+    s"${productPrefix}(${fields.mkString(", ")})"
+  }
+}
 
 object ServerConfig {
   def fromEnvOrThrow() = ServerConfig(

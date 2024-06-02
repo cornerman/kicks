@@ -3,6 +3,7 @@ package kicks.webapp
 import authn.frontend.*
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 import cats.effect.{IO, IOApp}
+import colibri.Observable
 import cps.*
 import cps.monads.catsEffect.given
 import cps.syntax.unary_!
@@ -22,12 +23,14 @@ object Main extends IOApp.Simple {
     import colibri.*
 
     div(
-      Observable
-        .intervalMillis(1000000)
-        .map {
-          case i if i % 2 == 0 => Test.foo()
-          case _ => i("Hallo")
-        }
+      Observable.intervalMillis(1000000).map {
+        case i if i % 2 == 0 => Test.foo()
+        case _ => i("Hallo")
+      },
+      Observable.intervalMillis(1000000).map {
+        case i if i % 2 == 0 => Test.bar()
+        case _ => i("Hallo")
+      },
 
 //      RpcClient.requestRpc.foo("wolf"),
 //      RpcClient.eventRpc.foo("peter"),

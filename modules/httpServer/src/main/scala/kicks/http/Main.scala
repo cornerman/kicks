@@ -12,20 +12,24 @@ object Main extends IOApp {
   enum Mode { case Server, Migrate, Repair }
 
   override def run(args: List[String]): IO[ExitCode] = asyncScope[IO] {
-    val modes  = args.map(Mode.valueOf).toSet
+    Logging.setup()
+
     val config = ServerConfig.fromEnvOrThrow()
+    scribe.info(s"Starting application ('${sbt.BuildInfo.version}'): $config")
+
+    val modes = args.map(Mode.valueOf).toSet
+
+    val state = !ServerState.create(config)
 
     if (modes(Mode.Repair)) {
-      !DbMigrations.repair(config.jdbcUrl)
+      !DbMigrations.repair(state.dataSource)
     }
 
     if (modes(Mode.Migrate) || modes.isEmpty) {
-      !DbMigrations.migrate(config.jdbcUrl)
+      !DbMigrations.migrate(state.dataSource)
     }
 
     if (modes(Mode.Server) || modes.isEmpty) {
-      val client = !EmberClientBuilder.default[IO].build
-      val state  = ServerState.create(config, client)
       !Server.start(state)
       !IO.never
     }

@@ -4,7 +4,7 @@ import cps.*
 import cps.syntax.unary_!
 import cps.monads.catsEffect.given
 
-import cats.effect.{IO, Resource}
+import cats.effect.{IO, ResourceIO}
 import com.comcast.ip4s.*
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.middleware.Logger
@@ -12,7 +12,7 @@ import org.http4s.server.middleware.Logger
 import scala.concurrent.duration.DurationInt
 
 object Server {
-  def start(state: ServerState): Resource[IO, Unit] = async[Resource[IO, *]] {
+  def start(state: ServerState): ResourceIO[Unit] = async[ResourceIO] {
     val routes = !ServerRoutes.all(state)
 
     val _ = !EmberServerBuilder

@@ -20,8 +20,10 @@ import smithy4s.Transformation
 import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
 import http4sJsoniter.ArrayEntityCodec.*
 import org.http4s.headers.`Content-Type`
+import org.sqlite.SQLiteDataSource
 
 import scala.annotation.unused
+import scala.util.chaining.*
 
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
@@ -53,9 +55,9 @@ object ServerRoutes {
       case ServerFailure.DeserializerError(err) => BadRequest(err.getMessage)
     }
 
-    HttpRoutes.of[IO] { case request @ _ -> Root / apiName / methodName =>
-      val requestPath = RequestPath(apiName, methodName)
-      (requestRouter.getFunction(requestPath), eventRouter.getFunction(requestPath)) match {
+    HttpRoutes[IO] { case request @ _ -> Root / apiName / methodName =>
+      val path = RequestPath(apiName, methodName)
+      val result = Option((requestRouter.getFunction(path), eventRouter.getFunction(path))).traverseCollect {
         case (Some(f), _) =>
           request.as[String].flatMap { payload =>
             f(payload) match {
@@ -71,20 +73,19 @@ object ServerRoutes {
               }
             case None => BadRequest()
           }
-        case (None, None) =>
-          NotFound()
       }
+
+      OptionT(result)
     }
   }
 
-  private def fileRoutes(state: ServerState): HttpRoutes[IO] = {
+  private def fileRoutes(state: ServerState): HttpRoutes[IO] =
     fileService[IO](
       FileService.Config(
         systemPath = state.config.frontendDistributionPath,
         cacheStrategy = MemoryCache[IO](),
       )
     )
-  }
 
   private def infoRoutes(state: ServerState): HttpRoutes[IO] = {
     def appConfig = AppConfig(
@@ -92,7 +93,7 @@ object ServerRoutes {
     )
 
     HttpRoutes.of[IO] {
-      case GET -> Root / "info" / "version"         => Ok("TODO")
+      case GET -> Root / "info" / "version"         => Ok(sbt.BuildInfo.version)
       case GET -> Root / "info" / "app_config.json" => Ok(appConfig)
       case GET -> Root / "info" / "app_config.js" =>
         val code = s"window.${AppConfig.domWindowProperty} = ${writeToString(appConfig)};"
@@ -101,18 +102,18 @@ object ServerRoutes {
   }
 
   def all(state: ServerState): Resource[IO, HttpRoutes[IO]] = async[Resource[IO, *]] {
-    val apiImpl = new ApiImpl(state.xa)
+    val apiImpl = new ApiImpl(state.xa, state.dataSource)
     val apiImplF = apiImpl.transform(new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
       def apply[E, A](fa: IO[Either[E, A]], injectError: E => Throwable): IO[A] = fa.map(_.leftMap(injectError)).rethrow
     })(Transformation.service_absorbError_transformation)
 
-    val kicksRoutes     = !SimpleRestJsonBuilder.routes(apiImplF).resource
-    val kicksDocsRoutes = swagger.docs[IO](KicksServiceGen)
+    val apiRoutes     = !SimpleRestJsonBuilder.routes(apiImplF).resource
+    val apiDocsRoutes = swagger.docs[IO](KicksServiceGen)
 
     fileRoutes(state) <+>
       infoRoutes(state) <+>
-      kicksRoutes <+>
-      kicksDocsRoutes <+>
+      apiRoutes <+>
+      apiDocsRoutes <+>
       rpcRoutes(state)
   }
 }

@@ -53,13 +53,15 @@ lazy val scalaJsSettings = Seq(
 
 lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
+  .enablePlugins(BuildInfoPlugin)
   .in(file("modules/shared"))
   .settings(commonSettings)
   .settings(
+    buildInfoPackage := "sbt",
     libraryDependencies ++= Seq(
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % versions.jsoniter,
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % versions.jsoniter % "compile-internal",
-    )
+    ),
   )
 
 lazy val rpc = crossProject(JSPlatform, JVMPlatform)
@@ -110,11 +112,11 @@ lazy val db = project
 //        .value
 //    },
     libraryDependencies ++= Seq(
-      "org.xerial"    % "sqlite-jdbc"  % "3.44.1.0",
-      "com.augustnagro" %% "magnum" % "1.1.1",
-      "io.getquill"  %% "quill-doobie" % versions.quill,
-      "org.tpolecat" %% "doobie-core"  % "1.0.0-RC5",
-      "org.flywaydb"  % "flyway-core"  % "10.6.0",
+      "org.xerial"       % "sqlite-jdbc"  % "3.46.0.0",
+      "com.augustnagro" %% "magnum"       % "1.1.1",
+      "io.getquill"     %% "quill-doobie" % versions.quill,
+      "org.tpolecat"    %% "doobie-core"  % "1.0.0-RC5",
+      "org.flywaydb"     % "flyway-core"  % "10.6.0",
     ),
   )
 
@@ -144,9 +146,18 @@ lazy val httpServer = project
 lazy val webapp = project
   .in(file("modules/webapp"))
   .enablePlugins(ScalaJSPlugin, ScalablyTypedConverterExternalNpmPlugin)
+  .enablePlugins(webcodegen.plugin.WebCodegenPlugin)
   .dependsOn(rpc.js, shared.js)
   .settings(commonSettings, scalaJsSettings)
   .settings(
+    webcodegenCustomElements := Seq(
+      webcodegen
+        .CustomElements("shoelace", jsonFile = file("modules/webapp/node_modules/@shoelace-style/shoelace/dist/custom-elements.json")),
+      webcodegen.CustomElements("emojipicker", jsonFile = file("modules/webapp/node_modules/emoji-picker-element/custom-elements.json")),
+    ),
+    webcodegenTemplates := Seq(
+      webcodegen.Template.Outwatch
+    ),
     libraryDependencies ++= Seq(
       "io.github.outwatch"   %%% "outwatch"               % versions.outwatch,
       "com.github.cornerman" %%% "colibri-router"         % versions.colibri,
@@ -170,5 +181,5 @@ lazy val webapp = project
     ),
   )
 
-addCommandAlias("dev", "webapp/fastLinkJS; httpServer/reStart")
+addCommandAlias("dev", "~; webapp/fastLinkJS; httpServer/reStart")
 addCommandAlias("prod", "webapp/fullLinkJS; httpServer/assembly")

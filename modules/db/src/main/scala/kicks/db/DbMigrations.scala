@@ -3,18 +3,20 @@ package kicks.db
 import cats.effect.IO
 import org.flywaydb.core.Flyway
 
+import javax.sql.DataSource
+
 object DbMigrations {
 
-  def migrate(jdbcUrl: String): IO[Unit] = IO.blocking {
-    val flyway = defaultFlyway(jdbcUrl).load()
-    flyway.migrate()
-  }.void
+  def migrate(dataSource: DataSource): IO[Unit] = IO.blocking {
+    val flyway = defaultFlyway(dataSource).load()
+    val _      = flyway.migrate()
+  }
 
-  def repair(jdbcUrl: String): IO[Unit] = IO.blocking {
-    val flyway = defaultFlyway(jdbcUrl).load()
-    flyway.repair()
-  }.void
+  def repair(dataSource: DataSource): IO[Unit] = IO.blocking {
+    val flyway = defaultFlyway(dataSource).load()
+    val _      = flyway.repair()
+  }
 
-  private def defaultFlyway(jdbcUrl: String) =
-    Flyway.configure().dataSource(jdbcUrl, null, null).locations("classpath:migrations").failOnMissingLocations(true)
+  private def defaultFlyway(dataSource: DataSource) =
+    Flyway.configure().dataSource(dataSource).locations("classpath:migrations").failOnMissingLocations(true)
 }
