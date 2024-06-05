@@ -1,7 +1,7 @@
 package kicks.http
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.{IO, Resource}
+import cats.effect.{IO, ResourceIO}
 import cats.implicits.given
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 import cps.*
@@ -20,10 +20,8 @@ import smithy4s.Transformation
 import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
 import http4sJsoniter.ArrayEntityCodec.*
 import org.http4s.headers.`Content-Type`
-import org.sqlite.SQLiteDataSource
 
 import scala.annotation.unused
-import scala.util.chaining.*
 
 object ServerRoutes {
   private val dsl = Http4sDsl[IO]
@@ -101,8 +99,8 @@ object ServerRoutes {
     }
   }
 
-  def all(state: ServerState): Resource[IO, HttpRoutes[IO]] = async[Resource[IO, *]] {
-    val apiImpl = new ApiImpl(state.xa, state.dataSource)
+  def all(state: ServerState): ResourceIO[HttpRoutes[IO]] = async[ResourceIO] {
+    val apiImpl = new ApiImpl(state.dataSource)
     val apiImplF = apiImpl.transform(new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
       def apply[E, A](fa: IO[Either[E, A]], injectError: E => Throwable): IO[A] = fa.map(_.leftMap(injectError)).rethrow
     })(Transformation.service_absorbError_transformation)

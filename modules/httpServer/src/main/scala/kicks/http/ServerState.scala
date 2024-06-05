@@ -6,7 +6,6 @@ import cps.monads.catsEffect.given
 
 import authn.backend.{AuthnClient, AuthnClientConfig}
 import cats.effect.{IO, ResourceIO}
-import doobie.util.transactor.Transactor
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.sqlite.SQLiteDataSource
@@ -16,7 +15,6 @@ import scala.util.chaining.*
 
 case class ServerState(
   dataSource: DataSource,
-  xa: Transactor[IO],
   authn: AuthnClient[IO],
   config: ServerConfig,
 )
@@ -27,7 +25,6 @@ object ServerState {
 
     ServerState(
       dataSource = SQLiteDataSource().tap(_.setUrl(config.jdbcUrl)),
-      xa = Transactor.fromDriverManager[IO]("org.sqlite.JDBC", config.jdbcUrl, None),
       authn = AuthnClient[IO](authnConfig(config), client),
       config = config,
     )

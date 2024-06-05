@@ -6,7 +6,6 @@ import cps.syntax.unary_!
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits.*
 import kicks.db.DbMigrations
-import org.http4s.ember.client.EmberClientBuilder
 
 object Main extends IOApp {
   enum Mode { case Server, Migrate, Repair }

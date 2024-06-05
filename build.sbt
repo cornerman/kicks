@@ -13,7 +13,6 @@ val versions = new {
   val dottyCpsAsync  = "0.9.19"
   val smithy4s       = "0.18.5"
   val jsoniter       = "2.28.0"
-  val quill          = "4.8.1"
   val http4s         = "0.23.24"
   val http4sJsoniter = "0.1.1"
   val authn          = "0.1.2"
@@ -33,10 +32,6 @@ lazy val commonSettings = Seq(
   // if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
   scalacOptions -= "-Xfatal-warnings",
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
-  scalacOptions ++= Seq(
-    // TODO: https://github.com/zio/zio-quill/issues/2639
-    "-Wconf:msg=Questionable row-class found:s"
-  ),
   libraryDependencies ++= Seq(
     "com.github.rssh" %%% "dotty-cps-async"               % versions.dottyCpsAsync,
     "com.github.rssh" %%% "cps-async-connect-cats-effect" % versions.dottyCpsAsync,
@@ -90,33 +85,16 @@ lazy val db = project
   .settings(commonSettings)
   .settings(
     dbcodegenTemplateFiles := Seq(
-      file("codegen/src/main/resources/table_case_class.scala.ssp"),
-      file("codegen/src/main/resources/table_case_class_magnum.scala.ssp"),
-      file("codegen/src/main/resources/table_case_class_quill.scala.ssp"),
+      file("codegen/src/main/resources/table_case_class_magnum.scala.ssp")
     ),
     dbcodegenJdbcUrl := "jdbc:sqlite:file::memory:?cache=shared",
     dbcodegenSetupTask := { db =>
       db.executeSqlFile(file("./schema.sql"))
     },
-//    quillcodegenSetupTask := {
-//      val dbFile  = quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")
-//      val command = s"rm -f ${dbFile} && sqlite3 ${dbFile} < ./schema.sql"
-//      require(sys.process.Process(Seq("sh", "-c", command)).! == 0, "Schema setup failed")
-//    },
-//    quillcodegenSetupTask := {
-//      Def
-//        .sequential(
-//          Def.task(IO.delete(file(quillcodegenJdbcUrl.value.stripPrefix("jdbc:sqlite:")))),
-//          executeSqlFile(file("./schema.sql")),
-//        )
-//        .value
-//    },
     libraryDependencies ++= Seq(
-      "org.xerial"       % "sqlite-jdbc"  % "3.46.0.0",
-      "com.augustnagro" %% "magnum"       % "1.1.1",
-      "io.getquill"     %% "quill-doobie" % versions.quill,
-      "org.tpolecat"    %% "doobie-core"  % "1.0.0-RC5",
-      "org.flywaydb"     % "flyway-core"  % "10.6.0",
+      "org.xerial"       % "sqlite-jdbc" % "3.46.0.0",
+      "com.augustnagro" %% "magnum"      % "1.1.1",
+      "org.flywaydb"     % "flyway-core" % "10.6.0",
     ),
   )
 

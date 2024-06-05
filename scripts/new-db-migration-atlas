@@ -22,7 +22,7 @@ echo "Set up target database by running all migrations"
 cat <(echo "") $(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | sort) | sqlite3 "${target_db_path}"
 
 echo "Calculate schema diff and generate migration steps"
-atlas schema diff --to="sqlite://${reference_db_path}" --from="sqlite://${target_db_path}" > "${migration_path}"
+atlas schema diff --to="sqlite://${reference_db_path}" --from="sqlite://${target_db_path}" | grep -v "^Schemas are synced, no changes to be made.$" > "${migration_path}"
 echo "Migration written to: ${migration_path}"
 
 echo "Test apply migration"
