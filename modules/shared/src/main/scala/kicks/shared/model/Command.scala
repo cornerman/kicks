@@ -1,0 +1,1 @@
+package kicks.shared.model

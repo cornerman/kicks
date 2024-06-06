@@ -44,7 +44,7 @@ object ServerRoutes {
     implicit val serializer: Serializer[String, String]     = x => x
     implicit val deserializer: Deserializer[String, String] = x => Right(x)
 
-    val requestRouter = Router[String, IO].route(RpcImpl)
+    val requestRouter = Router[String, IO].route(RpcImpl(state))
     val eventRouter   = Router[String, Stream[IO, *]].route(EventRpcImpl)
 
     def serverFailureToResponse[F[_]]: ServerFailure => IO[Response[IO]] = {
@@ -100,7 +100,7 @@ object ServerRoutes {
   }
 
   def all(state: ServerState): ResourceIO[HttpRoutes[IO]] = async[ResourceIO] {
-    val apiImpl = new ApiImpl(state.dataSource)
+    val apiImpl = new ApiImpl(state)
     val apiImplF = apiImpl.transform(new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
       def apply[E, A](fa: IO[Either[E, A]], injectError: E => Throwable): IO[A] = fa.map(_.leftMap(injectError)).rethrow
     })(Transformation.service_absorbError_transformation)

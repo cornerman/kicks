@@ -1,6 +1,6 @@
 <%@ val schema: dbcodegen.DataSchema %>
 
-package kicks.db.magnum.${schema.scalaName}
+package kicks.db.model
 
 import com.augustnagro.magnum.*
 

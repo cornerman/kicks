@@ -61,6 +61,7 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
 
 lazy val rpc = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
+  .dependsOn(shared)
   .in(file("modules/rpc"))
   .settings(commonSettings)
   .settings(
@@ -81,6 +82,7 @@ lazy val api = project
 
 lazy val db = project
   .in(file("modules/db"))
+  .dependsOn(shared.jvm)
   .enablePlugins(dbcodegen.plugin.DbCodegenPlugin)
   .settings(commonSettings)
   .settings(
@@ -92,15 +94,16 @@ lazy val db = project
       db.executeSqlFile(file("./schema.sql"))
     },
     libraryDependencies ++= Seq(
-      "org.xerial"       % "sqlite-jdbc" % "3.46.0.0",
-      "com.augustnagro" %% "magnum"      % "1.1.1",
-      "org.flywaydb"     % "flyway-core" % "10.6.0",
+      "org.xerial"            % "sqlite-jdbc"        % "3.46.0.0",
+      "com.augustnagro"      %% "magnum"             % "1.1.1",
+      "com.github.cornerman" %% "magnum-cats-effect" % "0.0.0+2-c68e7bb5-SNAPSHOT",
+      "org.flywaydb"          % "flyway-core"        % "10.6.0",
     ),
   )
 
 lazy val httpServer = project
   .in(file("modules/httpServer"))
-  .dependsOn(api, rpc.jvm, shared.jvm, db)
+  .dependsOn(api, rpc.jvm, db)
   .settings(commonSettings)
   .settings(
     Compile / run / fork := true,

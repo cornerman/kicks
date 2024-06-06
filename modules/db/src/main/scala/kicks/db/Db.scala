@@ -1,7 +1,7 @@
 package kicks.db
 
 import com.augustnagro.magnum.*
-import kicks.db.magnum.schema.*
+import kicks.db.model.*
 
 import javax.sql.DataSource
 
