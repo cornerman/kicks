@@ -8,7 +8,7 @@ object ModelRead {
     val childrenMap = posts.groupBy(_.parentPostId)
 
     def buildTree(parentId: Option[Int]): Vector[shared.Thread] =
-      childrenMap(parentId).map { post =>
+      childrenMap.getOrElse(parentId, Vector.empty).map { post =>
         shared.Thread(
           root = shared.Post(id = post.id.get, text = post.text.get),
           children = buildTree(post.id),

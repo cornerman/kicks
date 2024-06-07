@@ -12,6 +12,8 @@ import kicks.http.ServerState
 class RpcImpl(state: ServerState) extends Rpc[IO] {
   override def foo(s: String): IO[String] = IO("Hej " + s)
 
+  override def version: IO[String] = IO.pure(sbt.BuildInfo.version)
+
   override def getPostThread(rootId: Int): IO[Option[Thread]] = connectF[IO](state.dataSource)(lift {
     val dbPost = !PostChainRepo.findAll(
       PostChain.Spec.where(sql"${PostChain.Table.rootPostId} = ${rootId}")
