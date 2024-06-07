@@ -1,9 +1,5 @@
 package kicks.http
 
-import cps.*
-import cps.syntax.unary_!
-import cps.monads.catsEffect.given
-
 import authn.backend.{AuthnClient, AuthnClientConfig}
 import cats.effect.{IO, ResourceIO}
 import org.http4s.client.Client
@@ -20,7 +16,7 @@ case class ServerState(
 )
 
 object ServerState {
-  def create(config: ServerConfig): ResourceIO[ServerState] = async[ResourceIO] {
+  def create(config: ServerConfig): ResourceIO[ServerState] = lift[ResourceIO] {
     val client = !EmberClientBuilder.default[IO].build
 
     ServerState(

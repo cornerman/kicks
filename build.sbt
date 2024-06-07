@@ -32,6 +32,7 @@ lazy val commonSettings = Seq(
   // if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
   scalacOptions -= "-Xfatal-warnings",
   scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
+  scalacOptions ++= Seq("-Yimports:java.lang,scala,scala.Predef,cps.syntax,cps.syntax.monadless,cps.monads.catsEffect"),
   libraryDependencies ++= Seq(
     "com.github.rssh" %%% "dotty-cps-async"               % versions.dottyCpsAsync,
     "com.github.rssh" %%% "cps-async-connect-cats-effect" % versions.dottyCpsAsync,
@@ -96,7 +97,7 @@ lazy val db = project
     libraryDependencies ++= Seq(
       "org.xerial"            % "sqlite-jdbc"        % "3.46.0.0",
       "com.augustnagro"      %% "magnum"             % "1.1.1",
-      "com.github.cornerman" %% "magnum-cats-effect" % "0.0.0+2-c68e7bb5-SNAPSHOT",
+      "com.github.cornerman" %% "magnum-cats-effect" % "0.0.0+4-988d4494-SNAPSHOT",
       "org.flywaydb"          % "flyway-core"        % "10.6.0",
     ),
   )

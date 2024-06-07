@@ -4,9 +4,6 @@ import cats.data.{Kleisli, OptionT}
 import cats.effect.{IO, ResourceIO}
 import cats.implicits.given
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
-import cps.*
-import cps.monads.catsEffect.given
-import cps.syntax.unary_!
 import fs2.Stream
 import kicks.api.KicksServiceGen
 import kicks.http.auth.AuthUser
@@ -99,7 +96,7 @@ object ServerRoutes {
     }
   }
 
-  def all(state: ServerState): ResourceIO[HttpRoutes[IO]] = async[ResourceIO] {
+  def all(state: ServerState): ResourceIO[HttpRoutes[IO]] = lift[ResourceIO] {
     val apiImpl = new ApiImpl(state)
     val apiImplF = apiImpl.transform(new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
       def apply[E, A](fa: IO[Either[E, A]], injectError: E => Throwable): IO[A] = fa.map(_.leftMap(injectError)).rethrow

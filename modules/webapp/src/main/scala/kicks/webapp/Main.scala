@@ -4,9 +4,6 @@ import authn.frontend.*
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 import cats.effect.{IO, IOApp}
 import colibri.Observable
-import cps.*
-import cps.monads.catsEffect.given
-import cps.syntax.unary_!
 import kicks.shared.AppConfig
 import org.scalajs.dom
 import com.github.plokhotnyuk.jsoniter_scala.core.readFromString
@@ -57,7 +54,7 @@ object Main extends IOApp.Simple {
     )
   }
 
-  override def run = async[IO] {
+  override def run: IO[Unit] = lift {
     val configJs = dom.window.asInstanceOf[js.Dictionary[js.Any]](AppConfig.domWindowProperty)
     val config   = readFromString[AppConfig](js.JSON.stringify(configJs))
 
