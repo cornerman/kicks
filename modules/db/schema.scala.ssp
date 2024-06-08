@@ -44,7 +44,7 @@ object ${table.scalaName}Repo extends RepoF[IO, ${table.scalaName}.Creator, ${ta
 #end
 
     #for (index <- table.indices)
-    def findByIndex${index.scalaName}(
+    def findBy${index.columns.map(_.scalaName.stripPrefix("`").stripSuffix("`").capitalize).mkString}(
       #for (column <- index.columns)
       ${column.scalaName}: ${column.scalaType},
       #end
