@@ -95,10 +95,10 @@ lazy val db = project
   .enablePlugins(dbcodegen.plugin.DbCodegenPlugin)
   .settings(commonSettings)
   .settings(
-    dbcodegenTemplateFiles := Seq(file("schema.scala.ssp")),
+    dbcodegenTemplateFiles := Seq(baseDirectory.value / "schema.scala.ssp"),
     dbcodegenJdbcUrl := "jdbc:sqlite:file::memory:?cache=shared",
     dbcodegenSetupTask := { db =>
-      db.executeSqlFile(file("./schema.sql"))
+      db.executeSqlFile(baseDirectory.value / "schema.sql")
     },
     libraryDependencies ++= Seq(
       "org.xerial"            % "sqlite-jdbc"        % "3.46.0.0",
@@ -142,9 +142,8 @@ lazy val webapp = project
   .settings(commonSettings, scalaJsSettings)
   .settings(
     webcodegenCustomElements := Seq(
-      webcodegen
-        .CustomElements("shoelace", jsonFile = file("modules/webapp/node_modules/@shoelace-style/shoelace/dist/custom-elements.json")),
-      webcodegen.CustomElements("emojipicker", jsonFile = file("modules/webapp/node_modules/emoji-picker-element/custom-elements.json")),
+      webcodegen.CustomElements("shoelace", baseDirectory.value / "node_modules/@shoelace-style/shoelace/dist/custom-elements.json"),
+      webcodegen.CustomElements("emojipicker", baseDirectory.value / "node_modules/emoji-picker-element/custom-elements.json"),
     ),
     webcodegenTemplates := Seq(
       webcodegen.Template.Outwatch

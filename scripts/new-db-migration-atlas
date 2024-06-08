@@ -8,6 +8,7 @@ if [ $# -eq 0 ]; then
 fi
 
 migrations_path="./modules/db/src/main/resources/migrations"
+schema_path="./modules/db/schema.sql"
 
 num_migrations=$(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | wc -l)
 
@@ -16,7 +17,7 @@ target_db_path="${migration_path}.target.db"
 reference_db_path="${migration_path}.reference.db"
 
 echo "Set up reference database from schema file"
-cat schema.sql | sqlite3 "${reference_db_path}"
+cat "$schema_path" | sqlite3 "${reference_db_path}"
 
 echo "Set up target database by running all migrations"
 find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" -print0 | sort -z -n | xargs -0 awk 'ENDFILE {print ";"} 1' | sqlite3 "${target_db_path}"

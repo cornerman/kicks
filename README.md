@@ -51,13 +51,13 @@ We use sqlite for this application.
 The deployed version (and the docker-compose version) use litefs to replicate sqlite to multiple instances.
 
 We generate our scala database objects and schema definitions from an sql file.
-Edit `./schema.sql` to define the schema. This is the source of truth.
-Then compile your code (`db/compile`), this will regenerate scala files, and guide you.
+Edit `modules/db/schema.sql` to define the schema. This is the source of truth.
+Then compile your code (`db/compile`), this will regenerate scala files based on a scala template (`modules/db/schema.scala.ssp`), and guide you.
 
-We use the scala library `quill` for querying the database (see `./modules/db/src/main/scala/kicks/db/Db.scala`).
+We use the scala library `magnum` for querying the database (see `./modules/db/src/main/scala/kicks/db/Db.scala`).
 
 We run our migrations with flyway inside our scala application (see `./modules/db/src/main/resources/migrations/` and `./modules/db/src/main/scala/kicks/db/DbMigrations.scala`).
-After editing `./schema.sql`, you need to write a migration file. You can diff the schema against the current migrations and generate a migration file automatically: `./scripts/new-db-migration <title>`. You might need to edit the generated migration afterwards.
+After editing `modules/db/schema.sql`, you need to write a migration file. You can diff the schema against the current migrations and generate a migration file automatically: `./scripts/new-db-migration <title>`. You might need to edit the generated migration afterwards.
 
 ### HTTP API
 
