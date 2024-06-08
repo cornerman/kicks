@@ -1,10 +1,10 @@
-addSbtPlugin("org.typelevel"    % "sbt-tpolecat" % "0.5.0")
 addSbtPlugin("org.scalameta"    % "sbt-scalafmt" % "2.5.2")
 addSbtPlugin("com.timushev.sbt" % "sbt-rewarn"   % "0.1.3")
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly"  % "0.14.10")
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.12.0")
-addSbtPlugin("io.spray"     % "sbt-revolver"  % "0.10.0")
+addSbtPlugin("com.github.sbt" % "sbt-git"       % "2.0.1")
+addSbtPlugin("com.eed3si9n"   % "sbt-assembly"  % "0.14.10")
+addSbtPlugin("com.eed3si9n"   % "sbt-buildinfo" % "0.12.0")
+addSbtPlugin("io.spray"       % "sbt-revolver"  % "0.10.0")
 
 addSbtPlugin("com.disneystreaming.smithy4s" % "smithy4s-sbt-codegen"       % "0.18.5")
 addSbtPlugin("com.github.cornerman"         % "sbt-db-codegen"             % "0.4.0+3-b159048c+20240602-0206-SNAPSHOT")

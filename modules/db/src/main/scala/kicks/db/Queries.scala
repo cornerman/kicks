@@ -1,7 +1,7 @@
 package kicks.db
 
-import kicks.db.model.*
 import com.augustnagro.magnum.*
+import kicks.db.model.*
 
 object Queries {
 

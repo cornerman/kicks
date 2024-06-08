@@ -1,13 +1,12 @@
 package kicks.db
 
+import cats.effect.IO
 import cats.implicits.*
+import com.augustnagro.magnum.Frag
 import com.augustnagro.magnum.ce.*
 import kicks.db.model.*
-import cats.effect.IO
-import com.augustnagro.magnum.Frag
 
 import javax.sql.DataSource
-Frag()
 
 object Db {
   def run(ds: DataSource): IO[Unit] = transactF(ds)(lift {

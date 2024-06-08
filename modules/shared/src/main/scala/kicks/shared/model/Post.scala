@@ -9,3 +9,8 @@ case class Post(
   id: Int,
   text: String,
 )
+object Post {
+  case class Creator(
+    text: String
+  )
+}

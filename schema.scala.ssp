@@ -7,15 +7,6 @@ import com.augustnagro.magnum.*
 import com.augustnagro.magnum.Spec as MSpec
 import com.augustnagro.magnum.ce.*
 
-// TODO Workaround for: https://github.com/AugustNagro/magnum/issues/23
-given scala.reflect.ClassTag[Null] = new scala.reflect.ClassTag[Null] { def runtimeClass = classOf[Null] }
-given DbCodec[Null] with {
-  val cols = IArray(java.sql.Types.NULL)
-  def readSingle(rs: java.sql.ResultSet, pos: Int) = null
-  def writeSingle(a: Null, ps: java.sql.PreparedStatement, pos: Int) = ()
-  def queryRepr = "NULL"
-}
-
 #for (table <- schema.tables)
 
 @Table(SqliteDbType)

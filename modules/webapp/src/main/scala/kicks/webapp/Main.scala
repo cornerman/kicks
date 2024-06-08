@@ -4,9 +4,9 @@ import authn.frontend.*
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 import cats.effect.{IO, IOApp}
 import colibri.Observable
+import com.github.plokhotnyuk.jsoniter_scala.core.readFromString
 import kicks.shared.AppConfig
 import org.scalajs.dom
-import com.github.plokhotnyuk.jsoniter_scala.core.readFromString
 import outwatch.{Outwatch, VNode}
 
 import scala.scalajs.js
@@ -14,43 +14,33 @@ import scala.scalajs.js
 object Main extends IOApp.Simple {
 
   private def app(state: AppState): VNode = {
-    import outwatch.dsl.*
-    import outwatch.*
-
     import colibri.*
+    import outwatch.*
+    import outwatch.dsl.*
 
     div(
-      Observable.intervalMillis(1000000).map {
-        case i if i % 2 == 0 => Test.foo()
-        case _ => i("Hallo")
-      },
-      Observable.intervalMillis(1000000).map {
-        case i if i % 2 == 0 => Test.bar()
-        case _ => i("Hallo")
-      },
-
-//      RpcClient.requestRpc.foo("wolf"),
-//      RpcClient.eventRpc.foo("peter"),
-//      App.layout.provide(state),
-//      button(
-//        "Register",
-//        onClick.doEffect {
-//          state.authn.signup(Credentials(username = "est", password = "wolfgang254!!??"))
-//        },
-//      ),
-//      button(
-//        "Login",
-//        onClick.doEffect {
-//          state.authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
-//        },
-//      ),
-//      b(state.authn.session),
-//      button(
-//        "Logout",
-//        onClick.doEffect {
-//          state.authn.logout
-//        },
-//      ),
+      RpcClient.requestRpc.getPostThread(0).map(_.toString),
+      RpcClient.eventRpc.foo("peter"),
+      App.layout.provide(state),
+      button(
+        "Register",
+        onClick.doEffect {
+          state.authn.signup(Credentials(username = "est", password = "wolfgang254!!??"))
+        },
+      ),
+      button(
+        "Login",
+        onClick.doEffect {
+          state.authn.login(Credentials(username = "est", password = "wolfgang254!!??"))
+        },
+      ),
+      b(state.authn.session),
+      button(
+        "Logout",
+        onClick.doEffect {
+          state.authn.logout
+        },
+      ),
     )
   }
 

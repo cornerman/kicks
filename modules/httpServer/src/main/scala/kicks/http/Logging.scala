@@ -1,6 +1,6 @@
 package kicks.http
 
-import scribe._
+import scribe.*
 
 object Logging {
   val minimumLevel = Option(System.getenv("LOG_LEVEL"))

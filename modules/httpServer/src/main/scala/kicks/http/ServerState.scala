@@ -5,8 +5,8 @@ import cats.effect.{IO, ResourceIO}
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.sqlite.SQLiteDataSource
-import javax.sql.DataSource
 
+import javax.sql.DataSource
 import scala.util.chaining.*
 
 case class ServerState(

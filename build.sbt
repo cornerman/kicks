@@ -1,12 +1,12 @@
-import org.scalajs.jsenv.nodejs.NodeJSEnv
-import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.linker.interface.ModuleSplitStyle
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
-ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "kicks"
 ThisBuild / scalaVersion := "3.4.1"
+
+enablePlugins(GitVersioning)
+git.useGitDescribe := true
 
 val versions = new {
   val scribe         = "3.13.0"
@@ -18,9 +18,8 @@ val versions = new {
   val authn          = "0.1.2"
   val outwatch       = "1.0.0+12-c2498e95-SNAPSHOT"
   val colibri        = "0.8.4"
+  val monocle        = "3.2.0"
 }
-
-ThisBuild / libraryDependencySchemes += "org.tpolecat" %% "doobie-core" % "always"
 
 // Uncomment, if you want to use snapshot dependencies from sonatype
 ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
@@ -28,11 +27,20 @@ ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 val isCI = sys.env.get("CI").contains("true")
 
 lazy val commonSettings = Seq(
-  // Default scalacOptions set by: https://github.com/DavidGregory084/sbt-tpolecat
-  // if (isCI) scalacOptions += "-Xfatal-warnings" else scalacOptions -= "-Xfatal-warnings",
-  scalacOptions -= "-Xfatal-warnings",
-  scalacOptions --= Seq("-Xcheckinit"), // produces check-and-throw code on every val access
-  scalacOptions ++= Seq("-Yimports:java.lang,scala,scala.Predef,cps.syntax,cps.syntax.monadless,cps.monads.catsEffect"),
+  scalacOptions ++= Seq(
+    "-encoding",
+    "utf8",
+    "-unchecked",
+    "-deprecation",
+    "-feature",
+    "-language:higherKinds",
+    "-Ykind-projector",
+    "-Wunused:imports,privates,params,locals,implicits,explicits",
+    "-Wnonunit-statement",
+    // default imports in every scala file. we use the scala defaults + cps for direct syntax with lift/unlift/!
+    "-Yimports:java.lang,scala,scala.Predef,cps.syntax,cps.syntax.monadless,cps.monads.catsEffect",
+  ),
+  scalacOptions ++= (if (isCI) Seq("-Xfatal-warnings") else Seq.empty),
   libraryDependencies ++= Seq(
     "com.github.rssh" %%% "dotty-cps-async"               % versions.dottyCpsAsync,
     "com.github.rssh" %%% "cps-async-connect-cats-effect" % versions.dottyCpsAsync,
@@ -87,16 +95,14 @@ lazy val db = project
   .enablePlugins(dbcodegen.plugin.DbCodegenPlugin)
   .settings(commonSettings)
   .settings(
-    dbcodegenTemplateFiles := Seq(
-      file("codegen/src/main/resources/table_case_class_magnum.scala.ssp")
-    ),
+    dbcodegenTemplateFiles := Seq(file("schema.scala.ssp")),
     dbcodegenJdbcUrl := "jdbc:sqlite:file::memory:?cache=shared",
     dbcodegenSetupTask := { db =>
       db.executeSqlFile(file("./schema.sql"))
     },
     libraryDependencies ++= Seq(
       "org.xerial"            % "sqlite-jdbc"        % "3.46.0.0",
-      "com.augustnagro"      %% "magnum"             % "1.1.1",
+      "com.augustnagro"      %% "magnum"             % "1.2.0",
       "com.github.cornerman" %% "magnum-cats-effect" % "0.0.0+4-988d4494-SNAPSHOT",
       "org.flywaydb"          % "flyway-core"        % "10.6.0",
     ),
@@ -122,6 +128,9 @@ lazy val httpServer = project
       "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
       "com.github.cornerman"         %% "http4s-jsoniter"         % versions.http4sJsoniter,
       "com.github.cornerman"         %% "keratin-authn-backend"   % versions.authn,
+      "io.github.arainko"            %% "ducktape"                % "0.2.1",
+      "dev.optics"                   %% "monocle-core"            % versions.monocle,
+      "dev.optics"                   %% "monocle-macro"           % versions.monocle,
     ),
   )
 
@@ -156,12 +165,18 @@ lazy val webapp = project
 
     // scalablytyped
     externalNpm := baseDirectory.value,
-    stIgnore ++= List(
-      "@shoelace-style/shoelace",
-      "snabbdom",     // facade by outwatch
-      "keratin-authn",// facade by keratin-authn-frontend
-    ),
+    // TODO workaround to explicitly enable scalablytyped for specific packages:
+    // https://github.com/ScalablyTyped/Converter/pull/632
+    stIgnore ++= {
+      val deps = ujson.read(IO.read(baseDirectory.value / "package.json"))("dependencies").obj.keys.toList
+      deps.diff(
+        List(
+          // explicitly select which typescript packages need facades:
+        )
+      )
+    },
   )
 
-addCommandAlias("dev", "~; webapp/fastLinkJS; httpServer/reStart")
-addCommandAlias("prod", "webapp/fullLinkJS; httpServer/assembly")
+addCommandAlias("dev", "~; httpServer/reStart; webapp/fastLinkJS")
+addCommandAlias("devf", "httpServer/reStart; ~webapp/fastLinkJS")
+addCommandAlias("prod", "httpServer/assembly; webapp/fullLinkJS")

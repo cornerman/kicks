@@ -1,8 +1,8 @@
 package kicks.webapp
 
-import outwatch.dsl.*
-import outwatch.*
 import org.scalajs.dom
+import outwatch.*
+import outwatch.dsl.*
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
@@ -18,10 +18,7 @@ object Test {
 
   def bar() = {
     import kicks.web.shoelace.SlCheckbox.*
-    import kicks.web.shoelace.SlColorPicker
-    import kicks.web.shoelace.SlTree
-    import kicks.web.shoelace.SlTreeItem
-    import kicks.web.shoelace.SlButton
+    import kicks.web.shoelace.{SlButton, SlColorPicker, SlTree, SlTreeItem}
 
     VMod(
       SlButton.slButton(

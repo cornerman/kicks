@@ -1,5 +1,7 @@
 package kicks.http
 
+import monocle.syntax.all.*
+
 case class ServerConfig(
   jdbcUrl: String,
   frontendDistributionPath: String,
@@ -9,18 +11,13 @@ case class ServerConfig(
   authnAdminPassword: String,
   authnAudience: String,
 ) {
-  override def toString(): String = {
-    val fields = productElementNames.zip(productIterator).map { (name, value) =>
-      val isSecret       = name.toLowerCase.contains("password") || name.toLowerCase.contains("secret")
-      val sanitizedValue = if (isSecret) "***" else value
-      s"$name = $sanitizedValue"
-    }
-    s"${productPrefix}(${fields.mkString(", ")})"
-  }
+  override def toString: String =
+    val sanitized = this.focus(_.authnAdminPassword).replace("***")
+    productPrefix + Tuple.fromProduct(sanitized).toString
 }
 
 object ServerConfig {
-  def fromEnvOrThrow() = ServerConfig(
+  def fromEnvOrThrow(): ServerConfig = ServerConfig(
     jdbcUrl = sys.env("DATABASE_URL"),
     frontendDistributionPath = sys.env("FRONTEND_DISTRIBUTION_PATH"),
     authnIssuerUrl = sys.env("AUTHN_ISSUER_URL"),

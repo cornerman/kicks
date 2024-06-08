@@ -1,25 +1,25 @@
 package kicks.http
 
-import cats.~>
 import cats.data.{Kleisli, OptionT}
 import cats.effect.implicits.clockOps
 import cats.effect.{IO, ResourceIO}
 import cats.implicits.given
+import cats.~>
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 import fs2.Stream
+import http4sJsoniter.ArrayEntityCodec.*
 import kicks.api.KicksServiceGen
-import kicks.rpc.{EventRpc, Rpc}
 import kicks.http.auth.AuthUser
 import kicks.http.impl.{ApiImpl, EventRpcImpl, RpcImpl}
+import kicks.rpc.{EventRpc, Rpc}
 import kicks.shared.AppConfig
-import org.http4s.dsl.Http4sDsl
-import org.http4s.server.{AuthMiddleware, Router}
-import org.http4s.server.staticcontent.{fileService, FileService, MemoryCache}
 import org.http4s.*
-import smithy4s.Transformation
-import smithy4s.http4s.{swagger, SimpleRestJsonBuilder}
-import http4sJsoniter.ArrayEntityCodec.*
+import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.`Content-Type`
+import org.http4s.server.staticcontent.{FileService, MemoryCache, fileService}
+import org.http4s.server.{AuthMiddleware, Router}
+import smithy4s.Transformation
+import smithy4s.http4s.{SimpleRestJsonBuilder, swagger}
 
 import scala.annotation.unused
 
