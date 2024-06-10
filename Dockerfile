@@ -18,7 +18,7 @@ RUN litefs version
 WORKDIR /app
 
 COPY $LITEFS_CONFIG litefs.yml
-COPY modules/httpServer/target/scala-3.*/httpServer-assembly-0.1.0-SNAPSHOT.jar httpServer.jar
+COPY modules/httpServer/target/httpServer.jar
 COPY modules/webapp/dist $FRONTEND_DISTRIBUTION_PATH
 
 # Actual entrypoint/command inside litefs.yml

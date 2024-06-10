@@ -3,30 +3,31 @@ import org.scalajs.linker.interface.ModuleSplitStyle
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 ThisBuild / organization := "kicks"
-ThisBuild / scalaVersion := "3.4.1"
+ThisBuild / scalaVersion := "3.4.2"
 
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
 
 val versions = new {
-  val scribe         = "3.13.0"
-  val dottyCpsAsync  = "0.9.19"
-  val smithy4s       = "0.18.5"
-  val jsoniter       = "2.28.0"
-  val http4s         = "0.23.24"
-  val http4sJsoniter = "0.1.1"
-  val authn          = "0.1.2"
-  val outwatch       = "1.0.0+12-c2498e95-SNAPSHOT"
-  val colibri        = "0.8.4"
-  val monocle        = "3.2.0"
+  val scribe        = "3.13.0"
+  val dottyCpsAsync = "0.9.19"
+  val smithy4s      = "0.18.5"
+  val http4s        = "0.23.24"
+  val authn         = "0.1.2"
+  val outwatch      = "1.0.0+12-c2498e95-SNAPSHOT"
+  val colibri       = "0.8.4"
+  val monocle       = "3.2.0"
 }
 
-// Uncomment, if you want to use snapshot dependencies from sonatype
+// Use snapshot dependencies from sonatype
 ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+// Get maven artifacts immediately without waiting
+ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("public")
 
 val isCI = sys.env.get("CI").contains("true")
 
 lazy val commonSettings = Seq(
+  dependencyOverrides += "com.github.cornerman" %%% "chameleon" % "0.3.8+2-dfa4f304-SNAPSHOT",
   scalacOptions ++= Seq(
     "-encoding",
     "utf8",
@@ -63,8 +64,8 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .settings(
     buildInfoPackage := "sbt",
     libraryDependencies ++= Seq(
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core"   % versions.jsoniter,
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-macros" % versions.jsoniter % "compile-internal",
+      "com.github.cornerman" %%% "chameleon" % "0.3.8+2-dfa4f304-SNAPSHOT",
+      "com.lihaoyi"          %%% "upickle"   % "3.3.1",
     ),
   )
 
@@ -75,7 +76,7 @@ lazy val rpc = crossProject(JSPlatform, JVMPlatform)
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.github.cornerman" %%% "sloth" % "0.7.1+15-90fae7c7-SNAPSHOT"
+      "com.github.cornerman" %%% "sloth" % "0.7.2"
     )
   )
 
@@ -114,6 +115,7 @@ lazy val httpServer = project
   .settings(commonSettings)
   .settings(
     Compile / run / fork := true,
+    assembly / assemblyOutputPath := target.value / "httpServer.jar",
     assembly / assemblyMergeStrategy := {
       // https://stackoverflow.com/questions/73727791/sbt-assembly-logback-does-not-work-with-%C3%BCber-jar
       case PathList("META-INF", "services", _*)           => MergeStrategy.filterDistinctLines
@@ -126,7 +128,7 @@ lazy val httpServer = project
       "org.http4s"                   %% "http4s-ember-client"     % versions.http4s,
       "org.http4s"                   %% "http4s-ember-server"     % versions.http4s,
       "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
-      "com.github.cornerman"         %% "http4s-jsoniter"         % versions.http4sJsoniter,
+      "com.github.cornerman"         %% "chameleon-http4s"        % "0.3.8+2-dfa4f304-SNAPSHOT",
       "com.github.cornerman"         %% "keratin-authn-backend"   % versions.authn,
       "io.github.arainko"            %% "ducktape"                % "0.2.1",
       "dev.optics"                   %% "monocle-core"            % versions.monocle,
@@ -161,6 +163,8 @@ lazy val webapp = project
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.ESModule).withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("kicks")))
     },
+    Compile / fastLinkJS / scalaJSLinkerOutputDirectory := target.value / "scalajs-fastopt",
+    Compile / fullLinkJS / scalaJSLinkerOutputDirectory := target.value / "scalajs-opt",
 
     // scalablytyped
     externalNpm := baseDirectory.value,

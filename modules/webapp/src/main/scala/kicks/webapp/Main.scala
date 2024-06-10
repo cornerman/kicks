@@ -4,8 +4,7 @@ import authn.frontend.*
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 import cats.effect.{IO, IOApp}
 import colibri.Observable
-import com.github.plokhotnyuk.jsoniter_scala.core.readFromString
-import kicks.shared.AppConfig
+import kicks.shared.{AppConfig, JsonPickler}
 import org.scalajs.dom
 import outwatch.{Outwatch, VNode}
 
@@ -46,7 +45,7 @@ object Main extends IOApp.Simple {
 
   override def run: IO[Unit] = lift {
     val configJs = dom.window.asInstanceOf[js.Dictionary[js.Any]](AppConfig.domWindowProperty)
-    val config   = readFromString[AppConfig](js.JSON.stringify(configJs))
+    val config   = JsonPickler.read[AppConfig](js.JSON.stringify(configJs))
 
     val state = AppState(config)
 
