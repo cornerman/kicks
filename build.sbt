@@ -38,8 +38,8 @@ lazy val commonSettings = Seq(
     "-Ykind-projector",
     "-Wunused:imports,privates,params,locals,implicits,explicits",
     "-Wnonunit-statement",
-    // default imports in every scala file. we use the scala defaults + cps for direct syntax with lift/unlift/!
-    "-Yimports:java.lang,scala,scala.Predef,cps.syntax,cps.syntax.monadless,cps.monads.catsEffect",
+    // default imports in every scala file. we use the scala defaults + chaining + cps for direct syntax with lift/unlift/!
+    "-Yimports:java.lang,scala,scala.Predef,scala.util.chaining,cps.syntax,cps.syntax.monadless,cps.monads.catsEffect",
   ),
   scalacOptions ++= (if (isCI) Seq("-Xfatal-warnings") else Seq.empty),
   libraryDependencies ++= Seq(

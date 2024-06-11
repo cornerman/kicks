@@ -3,7 +3,8 @@ package kicks.http
 import kicks.db.model as db
 import kicks.shared.model as shared
 
-object ModelMap {
+object ModelTransformer {
+
   def postChain(posts: Vector[db.PostChain]): Option[shared.Thread] = {
     val childrenMap = posts.groupBy(_.parentPostId)
 
@@ -20,7 +21,4 @@ object ModelMap {
       case _            => None
     }
   }
-  
-  
-  
 }

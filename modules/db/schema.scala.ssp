@@ -6,6 +6,7 @@ import cats.effect.IO
 import com.augustnagro.magnum.*
 import com.augustnagro.magnum.Spec as MSpec
 import com.augustnagro.magnum.ce.*
+import scala.annotation.targetName
 
 #for (table <- schema.tables)
 
@@ -35,6 +36,15 @@ object ${table.scalaName} {
   val Table = TableInfo[${table.scalaName}.Creator, ${table.scalaName}, ${table.scalaName}.Id]
   #end
   val Spec = MSpec[${table.scalaName}]
+}
+
+extension (spec: MSpec[${table.scalaName}]) {
+  #for (column <- table.columns)
+  @targetName("${table.scalaName}_${column.scalaName}_eq")
+  def whereEq${column.scalaName.capitalize}(${column.scalaName}: ${column.scalaType}): MSpec[${table.scalaName}] = spec.where(if (${column.scalaName} == (None: Any)) sql"${column.name} is null" else sql"${column.name} = $${column.scalaName}")
+  @targetName("${table.scalaName}_${column.scalaName}_neq")
+  def whereNeq${column.scalaName.capitalize}(${column.scalaName}: ${column.scalaType}): MSpec[${table.scalaName}] = spec.where(if (${column.scalaName} == (None: Any)) sql"${column.name} is not null" else sql"${column.name} != $${column.scalaName}")
+  #end
 }
 
 #if (table.isView)

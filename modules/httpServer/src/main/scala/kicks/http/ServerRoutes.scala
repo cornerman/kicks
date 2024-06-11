@@ -81,20 +81,15 @@ object ServerRoutes {
       )
     )
 
-  private def infoRoutes(state: ServerState): HttpRoutes[IO] = {
-    def appConfig = AppConfig(
-      authnUrl = state.config.authnIssuerUrl
-    )
-
+  private def infoRoutes(state: ServerState): HttpRoutes[IO] =
     HttpRoutes.of[IO] {
       case GET -> Root / "info" / "version"         => Ok(sbt.BuildInfo.version)
-      case GET -> Root / "info" / "app_config.json" => Ok(json(appConfig))
+      case GET -> Root / "info" / "app_config.json" => Ok(json(state.config.appConfig))
       case req @ (POST -> Root / "info" / "test")   => Ok(jsonAs[AppConfig](req).map(_.toString))
       case GET -> Root / "info" / "app_config.js" =>
-        val code = s"window.${AppConfig.domWindowProperty} = ${JsonPickler.write(appConfig)};"
+        val code = s"window.${AppConfig.domWindowProperty} = ${JsonPickler.write(state.config.appConfig)};"
         Ok(code, `Content-Type`(MediaType.application.`javascript`))
     }
-  }
 
   def all(state: ServerState): ResourceIO[HttpRoutes[IO]] = lift[ResourceIO] {
     val apiImpl = new ApiImpl(state)

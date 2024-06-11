@@ -1,5 +1,6 @@
 package kicks.http
 
+import kicks.shared.AppConfig
 import monocle.syntax.all.*
 
 case class ServerConfig(
@@ -11,6 +12,10 @@ case class ServerConfig(
   authnAdminPassword: String,
   authnAudience: String,
 ) {
+  def appConfig = AppConfig(
+    authnUrl = authnIssuerUrl
+  )
+
   override def toString: String =
     val sanitized = this.focus(_.authnAdminPassword).replace("***")
     productPrefix + Tuple.fromProduct(sanitized).toString
