@@ -9,7 +9,7 @@ import scala.concurrent.duration.DurationInt
 
 object Server {
   def start(state: ServerState): ResourceIO[Unit] = lift[ResourceIO] {
-    val routes = !ServerRoutes.all(state)
+    val routes = ServerRoutes.all(state)
 
     val _ = !EmberServerBuilder
       .default[IO]

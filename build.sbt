@@ -27,7 +27,6 @@ ThisBuild / resolvers ++= Resolver.sonatypeOssRepos("public")
 val isCI = sys.env.get("CI").contains("true")
 
 lazy val commonSettings = Seq(
-  dependencyOverrides += "com.github.cornerman" %%% "chameleon" % "0.3.8+2-dfa4f304-SNAPSHOT",
   scalacOptions ++= Seq(
     "-encoding",
     "utf8",
@@ -64,7 +63,7 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .settings(
     buildInfoPackage := "sbt",
     libraryDependencies ++= Seq(
-      "com.github.cornerman" %%% "chameleon" % "0.3.8+2-dfa4f304-SNAPSHOT",
+      "com.github.cornerman" %%% "chameleon" % "0.4.0",
       "com.lihaoyi"          %%% "upickle"   % "3.3.1",
     ),
   )
@@ -128,7 +127,7 @@ lazy val httpServer = project
       "org.http4s"                   %% "http4s-ember-client"     % versions.http4s,
       "org.http4s"                   %% "http4s-ember-server"     % versions.http4s,
       "org.http4s"                   %% "http4s-dsl"              % versions.http4s,
-      "com.github.cornerman"         %% "chameleon-http4s"        % "0.3.8+2-dfa4f304-SNAPSHOT",
+      "com.github.cornerman"         %% "chameleon-http4s"        % "0.4.0",
       "com.github.cornerman"         %% "keratin-authn-backend"   % versions.authn,
       "io.github.arainko"            %% "ducktape"                % "0.2.1",
       "dev.optics"                   %% "monocle-core"            % versions.monocle,

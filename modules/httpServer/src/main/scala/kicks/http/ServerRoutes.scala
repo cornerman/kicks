@@ -43,6 +43,9 @@ object ServerRoutes {
     val requestRouter = Router[String, IO].route[Rpc[IO]](RpcImpl(state))
     val eventRouter   = Router[String, Stream[IO, *]].route[EventRpc[Stream[IO, *]]](EventRpcImpl)
 
+//    HttpSloth[IO](requestRouter) <+>
+//      HttpSloth[IO].streamRoutes(requestRouter)
+
     def serverFailureToResponse[F[_]]: ServerFailure => IO[Response[IO]] = {
       case ServerFailure.PathNotFound(_)        => NotFound()
       case ServerFailure.HandlerError(err)      => InternalServerError(err.getMessage)
@@ -91,19 +94,19 @@ object ServerRoutes {
         Ok(code, `Content-Type`(MediaType.application.`javascript`))
     }
 
-  def all(state: ServerState): ResourceIO[HttpRoutes[IO]] = lift[ResourceIO] {
-    val apiImpl = new ApiImpl(state)
-    val apiImplF = apiImpl.transform(new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
+  def apiRoutes(state: ServerState): HttpRoutes[IO] = {
+    val apiImplIOError = new ApiImpl(state)
+    val absorbIOError = new Transformation.AbsorbError[[E, A] =>> IO[Either[E, A]], IO] {
       def apply[E, A](fa: IO[Either[E, A]], injectError: E => Throwable): IO[A] = fa.map(_.leftMap(injectError)).rethrow
-    })(Transformation.service_absorbError_transformation)
+    }
+    val apiImplIO = apiImplIOError.transform(absorbIOError)(Transformation.service_absorbError_transformation)
 
-    val apiRoutes     = !SimpleRestJsonBuilder.routes(apiImplF).resource
+    val apiRoutes     = SimpleRestJsonBuilder.routes(apiImplIO).make.getOrElse(HttpRoutes.of[IO](PartialFunction.empty))
     val apiDocsRoutes = swagger.docs[IO](KicksServiceGen)
 
-    fileRoutes(state) <+>
-      infoRoutes(state) <+>
-      apiRoutes <+>
-      apiDocsRoutes <+>
-      rpcRoutes(state)
+    apiRoutes <+> apiDocsRoutes
   }
+
+  def all(state: ServerState): HttpRoutes[IO] =
+    fileRoutes(state) <+> infoRoutes(state) <+> apiRoutes(state) <+> rpcRoutes(state)
 }
