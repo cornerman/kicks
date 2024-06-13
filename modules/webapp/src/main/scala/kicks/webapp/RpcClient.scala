@@ -5,30 +5,20 @@ import colibri.jsdom.EventSourceObservable
 import colibri.Observable
 import kicks.rpc.{EventRpc, Rpc}
 import org.scalajs.dom
-import sloth.{Client, Request, RequestTransport}
+import sloth.ext.http4s.client.*
+import colibri.ext.fs2.*
+import org.http4s.dom.*
 
 import scala.scalajs.js.URIUtils
 
 object RpcClient {
   import kicks.shared.JsonPickler.*
 
-  val requestRpc: Rpc[IO]            = Client[String, IO](RequestRpcTransport).wire[Rpc[IO]]
-  val eventRpc: EventRpc[Observable] = Client[String, Observable](EventRpcTransport).wire[EventRpc[Observable]]
-}
+  private val httpConfig    = IO.pure(HttpRequestConfig())
+  private val fetchClient   = FetchClientBuilder[IO].create
+  private val requestClient = sloth.Client[String, IO](HttpRpcTransport(fetchClient, httpConfig))
+  private val eventClient   = sloth.Client[String, Observable](HttpRpcTransport.eventStream(fetchClient, httpConfig).map(Observable.lift))
 
-private object RequestRpcTransport extends RequestTransport[String, IO] {
-  override def apply(request: Request[String]): IO[String] = {
-    val url         = s"http://localhost:8080/${request.path.mkString("/")}"
-    val requestArgs = new dom.RequestInit { method = dom.HttpMethod.POST; body = request.payload }
-    IO.fromThenable(IO(dom.fetch(url, requestArgs).`then`[String](_.text())))
-  }
-}
-
-private object EventRpcTransport extends RequestTransport[String, Observable] {
-  override def apply(request: Request[String]): Observable[String] = {
-    // TODO: https://www.npmjs.com/package/@microsoft/fetch-event-source
-    val pathPart = URIUtils.encodeURIComponent(request.payload)
-    val url      = s"http://localhost:8080/${request.path.mkString("/")}?payload=${pathPart}"
-    EventSourceObservable(url).map(_.data.toString)
-  }
+  val requestRpc: Rpc[IO]            = requestClient.wire[Rpc[IO]]
+  val eventRpc: EventRpc[Observable] = eventClient.wire[EventRpc[Observable]]
 }
